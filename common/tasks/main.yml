@@ -1,0 +1,67 @@
+---
+- name: Install common packages
+  apt: name="{{ item }}" update_cache=yes cache_valid_time=3600
+  with_items:
+    - curl
+    - htop
+    - vim
+    - git
+    - unzip
+    - gettext
+    - build-essential
+    - apt-transport-https
+    - ca-certificates
+    - software-properties-common
+    - chrony
+
+- name: remove ntpd to avoid conflict with chrony
+  apt: name=ntp state=absent
+
+- locale_gen: name=en_US.UTF-8 state=present
+
+- name: Set default locales
+  template: src=locale.j2 dest=/etc/default/locale
+  register: loc
+
+- command: dpkg-reconfigure --frontend noninteractive locales
+  when: loc.changed
+
+- name: Configure chrony
+  lineinfile:
+    path: /etc/chrony/chrony.conf
+    regexp: '^server '
+    insertafter: '^pool '
+    line: 'server 169.254.169.123 prefer iburst'
+  register: chrony_cfg
+
+- service: name=chrony state=restarted
+  when: chrony_cfg.changed
+
+- name: Install ctop — top-like interface for docker metrics
+  shell: curl -Lo /usr/local/bin/ctop https://github.com/bcicen/ctop/releases/download/v0.7.1/ctop-0.7.1-linux-amd64 && chmod +x /usr/local/bin/ctop
+  args:
+    creates: /usr/local/bin/ctop
+
+- stat: path=/var/data
+  register: vd
+
+- file: path=/var/data state=directory
+  when: not vd.stat.exists
+
+- name: Configure journald
+  copy: src=journald.conf dest=/etc/systemd/journald.conf
+  register: journald_conf
+
+- command: systemctl restart systemd-journald.service
+  when: journald_conf.changed
+
+- name: More aggressive logrotate config for rsyslog
+  copy: src=logrotate.conf dest=/etc/logrotate.d/rsyslog
+
+- name: Run logrotate every hour
+  file: src=/etc/cron.daily/logrotate dest=/etc/cron.hourly/logrotate state=link
+
+- file: path="/etc/{{ project_name }}/secrets" state=directory
+
+- name: Secret configs for access to S3 bucket with backups
+  template: src=backup-s3cfg.j2 dest=/etc/{{ project_name }}/secrets/aws-backup-s3cfg
