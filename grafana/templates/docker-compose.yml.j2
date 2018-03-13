@@ -1,0 +1,20 @@
+version: '3'
+services:
+  grafana:
+    image: grafana/grafana:5.0.1
+    network_mode: host
+    restart: always
+    ports:
+      - 3000:3000
+    volumes:
+      - /var/data/grafana:/var/lib/grafana
+    env_file:
+      - /etc/{{ project_name }}/grafana.env
+    environment:
+      GF_LOG_MODE: console
+      GF_LOG_LEVEL: warn
+      GF_SERVER_ROOT_URL: "http://grafana.{{ env_domain }}/"
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Editor
+      SERVICE_NAME: system/grafana
+      SERVICE_CHECK_TCP: "true"

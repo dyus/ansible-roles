@@ -1,0 +1,139 @@
+{
+  "order": 1,
+  "template": "journalbeat-*",
+  "settings": {
+    "index": {
+      "number_of_shards": "4",
+      "query": {
+        "default_field": "message"
+      }
+    }
+  },
+  "mappings": {
+    "_default_": {
+      "_all": {
+        "enabled": false
+      },
+      "dynamic": false,
+      "properties": {
+        "hostname": {
+          "index": "not_analyzed",
+          "type": "string"
+        },
+        "container_tag": {
+          "index": "not_analyzed",
+          "type": "string"
+        },
+        "container_name": {
+          "index": "not_analyzed",
+          "type": "string"
+        },
+        "container_id": {
+          "index": "not_analyzed",
+          "type": "string"
+        },
+        "service_name": {
+          "index": "not_analyzed",
+          "type": "string"
+        },
+        "service_tag": {
+          "index": "not_analyzed",
+          "type": "string"
+        },
+        "service_version": {
+          "index": "not_analyzed",
+          "type": "string"
+        },
+        "host": {
+          "type": "string"
+        },
+        "logger_name": {
+          "type": "string"
+        },
+        "errno": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "level": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "source_realtime_timestamp": {
+          "type": "long",
+          "index": "not_analyzed"
+        },
+        "thread_name": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "name": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "http_referrer": {
+          "type": "string"
+        },
+        "stack_trace": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "status": {
+          "type": "integer"
+        },
+        "remote_address": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "request_method": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "response_size": {
+          "type": "long",
+          "index": "not_analyzed"
+        },
+        "http_user_agent": {
+          "type": "string"
+        },
+        "request_time": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "json": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "remote_addr": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "response_status": {
+          "type": "long",
+          "index": "not_analyzed"
+        },
+        "message": {
+          "type": "string"
+        },
+        "uri": {
+          "type": "string"
+        },
+        "@timestamp": {
+          "format": "strict_date_optional_time||epoch_millis",
+          "type": "date"
+        },
+        "http_x_forwarded_for": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "correlation_id": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "message_id": {
+          "type": "string",
+          "index": "not_analyzed"
+        }
+      }
+    }
+  }
+}

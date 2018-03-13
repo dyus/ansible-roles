@@ -1,0 +1,51 @@
+---
+- group: name=gocd
+- user: name=gocd group=gocd groups=docker shell=/bin/bash
+
+- copy: src="{{ git_rsa_key }}" dest=/home/gocd/.ssh/id_rsa mode=400
+
+- lineinfile: dest=/home/gocd/.ssh/config create=yes mode=400 regexp="^\s*StrictHostKeyChecking no" line="StrictHostKeyChecking no"
+
+- apt: name=supervisor state=present
+
+- file: path=/tmp/go-agent/{{ version }} state=directory
+  register: newversion
+
+- name: Cleanup old versions
+  shell: "find /tmp/go-agent/* -maxdepth 0 ! -name '{{ version }}' -type d -exec rm -rf {} +"
+  when: newversion.changed
+
+- unarchive:
+    src: https://download.gocd.io/binaries/{{ version }}/generic/go-agent-{{ version }}.zip
+    dest: /tmp/go-agent/{{ version }}
+    remote_src: True
+  when: newversion.changed
+
+- file: path=/var/data/go-{{ agent_name }}/config state=directory
+
+- name: Check current agent version
+  shell: cat /var/data/go-{{ agent_name }}/version
+  ignore_errors: True
+  register: curversion
+
+- shell: cp -rv /tmp/go-agent/{{ version }}/go-agent-*/* /var/data/go-{{ agent_name }}/
+  when: curversion.changed and curversion.stdout != version
+
+- name: Update current version
+  copy: dest=/var/data/go-{{ agent_name }}/version content="{{ version }}"
+  when: curversion.changed and curversion.stdout != version
+
+- name: Copy supervisor config
+  template: src=agent-supervisor.conf.j2 dest=/etc/supervisor/conf.d/go-{{ agent_name }}.conf
+  register: supconf
+
+- name: Copy autoregister.properties
+  template: src=autoregister.properties.j2 dest=/var/data/go-{{ agent_name }}/config/autoregister.properties
+  register: autprop
+
+- file: path=/var/data/go-{{ agent_name }}/ owner=gocd group=gocd recurse=true state=directory
+  when: curversion.changed and curversion.stdout != version
+
+- name: Restart supervisor
+  service: name=supervisor state=restarted
+  when: supconf.changed or autprop.changed or (curversion.changed and curversion.stdout != version)

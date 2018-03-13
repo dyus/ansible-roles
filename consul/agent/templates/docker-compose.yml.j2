@@ -1,0 +1,9 @@
+version: '3'
+services:
+  consul-agent:
+    image: consul:1.0.6
+    network_mode: host
+    restart: always
+    command: "agent -datacenter={{ ec2_tag_env }} -advertise={{ ansible_default_ipv4.address }} -client=0.0.0.0 {% for host in groups['tag_role_consul_server'] %}-retry-join={{ hostvars[host]['ec2_private_ip_address'] }} {% endfor %}"
+    volumes:
+      - /var/data/consul/data:/consul/data

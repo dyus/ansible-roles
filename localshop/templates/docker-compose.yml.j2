@@ -1,0 +1,14 @@
+version: '3'
+services:
+  localshop:
+    image: ardeois/docker-localshop
+    restart: always
+    ports:
+      - 8035:8000
+    volumes:
+      - /var/data/localshop/packages:/home/localshop/packages
+    environment:
+      LOCALSHOP_TIMEZONE: "Europe/London"
+      LOCALSHOP_DELETE_FILES: "1"
+      SERVICE_NAME: system/localshop
+      SERVICE_CHECK_TCP: "true"

@@ -1,0 +1,18 @@
+version: '3'
+services:
+  cadvisor:
+    image: google/cadvisor:v0.29.0
+    network_mode: host
+    restart: always
+    command: ["-port", "8023", "--disable_metrics=disk,network,tcp,udp", "--docker_env_metadata_whitelist=SERVICE_NAME"]
+    ports:
+      - 8023:8023
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    environment:
+      SERVICE_NAME: system/cadvisor
+      SERVICE_CHECK_TCP: "true"

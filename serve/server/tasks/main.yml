@@ -1,0 +1,19 @@
+---
+- file: path=/etc/serve state=directory
+
+- name: Copy local configs
+  template: src="{{ playbook_dir }}/files/serve/serve-server.yml.j2" dest=/etc/serve/serve-server.yml
+
+- name: Write gocd credentials
+  copy: dest=/etc/serve/gocd_credentials content='{"login":"admin","password":"{{ gocd_api_password }}"}'
+
+- name: Save rsa key for access to git repository (download manifest.yml)
+  copy: src="{{ git_rsa_key }}" dest=/etc/serve/git_rsa_key mode=400
+
+- name: Copy docker-compose
+  template: src=docker-compose.yml.j2 dest=/etc/compose/serve-server.yml
+  register: compose
+
+- name: Run docker container
+  command: docker-compose --file=/etc/compose/serve-server.yml up -d --force-recreate
+  when: compose.changed

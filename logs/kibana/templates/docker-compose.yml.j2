@@ -1,0 +1,12 @@
+version: '3'
+services:
+  kibana:
+    image: kulikov/kibana3:1.0.2
+    network_mode: host
+    restart: always
+    ports:
+      - 5601:5601
+    environment:
+      ELASTICSEARCH_HOST: "{{ elasticsearch_host }}"
+      SERVICE_NAME: system/kibana
+      SERVICE_CHECK_TCP: "true"

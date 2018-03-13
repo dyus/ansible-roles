@@ -1,0 +1,13 @@
+version: '3'
+services:
+  journalbeat:
+    image: mheese/journalbeat:v5.5.2
+    network_mode: host
+    restart: always
+    volumes:
+      - /var/log/journal:/var/log/journal
+      - /run/log/journal:/run/log/journal
+      - /etc/machine-id:/etc/machine-id
+      - /var/data/journalbeat:/data
+      - /etc/journalbeat/journalbeat.yml:/journalbeat.yml
+      - /etc/journalbeat/journalbeat.template.json:/journalbeat.template.json

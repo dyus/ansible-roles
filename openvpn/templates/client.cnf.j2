@@ -1,0 +1,29 @@
+client
+dev tun
+proto {{ openvpn_protocol }}
+remote {{ openvpn_public_domain }} {{ openvpn_port }}
+
+cipher {{ openvpn_cipher }}
+auth {{ openvpn_auth_digest }}
+auth-user-pass
+
+resolv-retry infinite
+nobind
+persist-key
+persist-tun
+ns-cert-type server
+setenv opt block-outside-dns
+key-direction 1
+verb 3
+
+<ca>
+{{ openvpn_ca_contents.stdout }}
+</ca>
+
+<cert>
+{{ item[1].stdout }}
+</cert>
+
+<key>
+{{ item[2].stdout }}
+</key>

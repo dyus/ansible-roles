@@ -1,0 +1,13 @@
+version: '3'
+services:
+  prometheus-es-exporter:
+    image: kulikov/prometheus-es-exporter-consul:1.0.2
+    network_mode: host
+    restart: always
+    command: --es-cluster localhost --indices-stats-disable --nodes-stats-disable
+    ports:
+      - 9206:9206
+    environment:
+      ES_QUERY_INDICES: "<journalbeat-{now/d}>"
+      SERVICE_NAME: system/prometheus-es-exporter
+      SERVICE_CHECK_TCP: "true"

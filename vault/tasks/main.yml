@@ -1,0 +1,21 @@
+---
+- file: path=/etc/vault state=directory
+
+- template: src=config.hcl dest=/etc/vault/config.hcl
+  register: conf
+
+- name: Copy docker-compose for vault
+  template: src=docker-compose.yml.j2 dest=/etc/vault-docker-compose.yml
+  register: compose
+
+- name: Run docker container with vault
+  command: docker-compose --file=/etc/vault-docker-compose.yml up -d --force-recreate
+  when: compose.changed or conf.changed
+
+- name: Save routing info to consul for access from load balancer
+  uri:
+    url: http://127.0.0.1:8500/v1/kv/services/routes/system/vault
+    method: PUT
+    body_format: json
+    body: '{ "routes": [ { "host": "vault.{{ env_domain }}" } ] }'
+  when: compose.changed

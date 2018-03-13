@@ -1,0 +1,256 @@
+---
+- name: Add Openvpn’s apt repository
+  apt_repository: repo="deb http://build.openvpn.net/debian/openvpn/stable {{ ansible_distribution_release }} main"
+
+- name: Install the OpenVPN
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+    force: yes
+  with_items: "{{ ubuntu_openvpn_pkgs }}"
+
+- name: Configure logrotate for OpenVPN
+  copy: src=logrotate.conf dest=/etc/logrotate.d/openvpn
+
+- name: Create openvpn user
+  user:
+    name: openvpn
+    state: present
+    createhome: no
+
+- name: Create openvpn user group
+  group: name=openvpn state=present
+
+- name: Create openvpn users
+  user:
+    name: "{{ item.user }}"
+    password: "{{ item.sha512 }}"
+    group: openvpn
+    createhome: no
+  with_items: "{{ system_users }}"
+  tags: [vpnusers]
+
+- name: Cleanup deleted users
+  user: name="{{ item.user }}" remove=yes state=absent
+  with_items: "{{ deleted_users }}"
+  tags: [vpnusers]
+
+- name: Set ip forwarding in the sysctl file and reload if necessary
+  sysctl:
+    name: "net.ipv4.ip_forward"
+    value: 1
+    sysctl_set: yes
+    state: present
+    reload: yes
+
+- name: Enable IPv4 traffic forwarding - (/proc/sys/net/ipv4/ip_forward)
+  command: echo 1 > /proc/sys/net/ipv4/ip_forward
+
+- name: Generate the RSA keys
+  command: openssl genrsa -out {{ item }}.key {{ openvpn_key_size }}
+  args:
+    chdir: "{{ openvpn_path }}"
+    creates: "{{ item }}.key"
+  with_items:
+    - ca
+    - server
+
+- name: Cleanup deleted user's directory
+  file: path="{{ openvpn_path }}/users/{{ item.user }}" state=absent
+  with_items: "{{ deleted_users }}"
+  tags: [vpnusers]
+
+- name: Create directories for clients
+  file:
+    path: "{{ openvpn_path }}/users/{{ item.user }}"
+    state: directory
+  with_items: "{{ system_users }}"
+  tags: [vpnusers]
+
+- name: Generate RSA keys for the Clients
+  command: openssl genrsa -out {{ item.user }}.key {{ openvpn_key_size }}
+  args:
+    chdir: "{{ openvpn_path }}/users/{{ item.user }}"
+    creates: "{{ item.user }}.key"
+  with_items: "{{ system_users }}"
+  tags: [vpnusers]
+
+- name: Generate CA certificate
+  command: openssl req -nodes -batch -new -x509 -key {{ openvpn_ca }}.key -out {{ openvpn_ca }}.crt
+            -days {{ openvpn_days_valid }} -subj "{{ openssl_request_subject }}/CN=ca-certificate"
+  args:
+    creates: "{{ openvpn_ca }}.crt"
+
+- name: Generate OpenSSL configuration that will be used for the Server certificate req and ca commands
+  template:
+    src: server-certificate.cnf.j2
+    dest: "{{ openvpn_path }}/openssl-server-certificate.cnf"
+
+- name: Check that the "index.txt" file exist
+  stat:
+    path: "{{ openvpn_path }}/index.txt"
+  register: index_exist
+
+- name: Create blank database file that will be used when generating the Server certificate
+  file:
+    path: "{{ openvpn_path }}/index.txt"
+    state: touch
+  when: index_exist.stat.exists == False
+
+- name: Check that the "serial" file exist
+  stat:
+    path: "{{ openvpn_path }}/serial"
+  register: stat_result
+
+- name: Copy/Create the serial file that will be used when generating the Server certificate
+  copy:
+    content: "01"
+    dest: "{{ openvpn_path }}/serial"
+  when: stat_result.stat.exists == False
+
+- name: Generate the CSR for the Server
+  command: openssl req -batch -extensions server -new -key server.key -out server.csr -config {{ openvpn_path }}/openssl-server-certificate.cnf
+  args:
+    chdir: "{{ openvpn_path }}"
+    creates: server.csr
+
+- name: Generate the Certificate for the Server
+  command: openssl ca -batch -extensions server -in server.csr -out server.crt -config openssl-server-certificate.cnf
+  args:
+    chdir: "{{ openvpn_path }}"
+    creates: server.crt
+
+- name: Generate CSRs for the clients
+  command: openssl req -new -key {{ item.user }}.key -out {{ item.user }}.csr -subj "{{ openssl_request_subject }}/CN={{ item.user }}"
+  args:
+    chdir: "{{ openvpn_path }}/users/{{ item.user }}"
+    creates: "{{ item.user }}.csr"
+  with_items: "{{ system_users }}"
+  tags: [vpnusers]
+
+- name: Generate certificates for the clients
+  command: openssl x509 -CA {{ openvpn_ca }}.crt -CAkey {{ openvpn_ca }}.key -CAcreateserial -req -days {{ openvpn_days_valid }} -in {{ item.user }}.csr -out {{ item.user }}.crt
+  args:
+    creates: "{{ item.user }}.crt"
+    chdir: "{{ openvpn_path }}/users/{{ item.user }}"
+  with_items: "{{ system_users }}"
+  tags: [vpnusers]
+
+- name: Generate the HMAC firewall key
+  command: openvpn --genkey --secret {{ openvpn_hmac_firewall }}
+  args:
+    creates: "{{ openvpn_hmac_firewall }}"
+
+- name: Register CA certificate contents
+  command: cat ca.crt
+  args:
+    chdir: "{{ openvpn_path }}"
+  register: openvpn_ca_contents
+  tags: [vpnusers]
+
+- name: Register client certificate contents
+  command: cat {{ item.user }}.crt
+  args:
+    chdir: "{{ openvpn_path }}/users/{{ item.user }}"
+  with_items: "{{ system_users }}"
+  register: openvpn_client_certificates
+  tags: [vpnusers]
+
+- name: Register client key contents
+  command: cat {{ item.user }}.key
+  args:
+    chdir: "{{ openvpn_path }}/users/{{ item.user }}"
+  with_items: "{{ system_users }}"
+  register: openvpn_client_keys
+  tags: [vpnusers]
+
+- name: Create the client configs
+  template:
+    src: client.cnf.j2
+    dest: "{{ openvpn_path }}/users/{{ item[0].user }}/{{ openvpn_server }}.ovpn"
+  no_log: yes
+  with_together:
+    - "{{ system_users }}"
+    - "{{ openvpn_client_certificates.results }}"
+    - "{{ openvpn_client_keys.results }}"
+  tags: [vpnusers]
+
+- name: Generate Diffie-Hellman parameters (this will take a while)
+  command: openssl dhparam -out {{ openvpn_dhparam }} {{ openvpn_key_size }} -dsaparam
+  args:
+    creates: "{{ openvpn_dhparam }}"
+
+- name: Show the iptables rules
+  command: iptables -n -t nat -L
+  register: iptables_nat_rules
+  changed_when: no
+  check_mode: no
+
+- block:
+    - name: Allow OpenVPN through the firewall
+      command: "{{ item }}"
+      with_items: "{{ iptables_openvpn_rules }}"
+
+    - name: Save NAT iptables rules
+      command: "service netfilter-persistent save"
+
+  when: not (iptables_nat_rules.stdout | search("MASQUERADE") and iptables_nat_rules.stdout | search(openvpn_network + "/24"))
+
+- name: Allow OpenVPN through ufw
+  ufw:
+    rule: allow
+    port: "{{ openvpn_port }}"
+    proto: "{{ openvpn_protocol }}"
+
+- name: Copy consul auth script
+  template:
+    src: consul_auth.py.j2
+    dest: /etc/openvpn/consul_auth.py
+    owner: openvpn
+    group: openvpn
+    mode: "a+x"
+  when: enable_consul_auth
+
+- name: Secret key for consul auth
+  copy:
+    src: "{{ secrets_dir }}/vpn_consul_secret"
+    dest: "/etc/openvpn/consul_secret_key"
+  when: enable_consul_auth
+
+- name: Copy OpenVPN configuration file into place
+  template:
+    src: server.conf.j2
+    dest: /etc/openvpn/server.conf
+  register: openvpn_conf_changed
+
+# OpenVPN must restart first so the interface is available to dnsmasq
+- service: name=openvpn@server state=restarted
+  when: openvpn_conf_changed.changed
+
+- name: Copy dnsmasq configuration file into place
+  template:
+    src: dnsmasq.conf.j2
+    dest: /etc/dnsmasq.conf
+    backup: yes
+  register: dnsmasq_conf_changed
+
+- service: name=dnsmasq state=restarted
+  when: dnsmasq_conf_changed.changed
+
+- name: Update the "rc.local" file
+  lineinfile:
+    dest: /etc/rc.local
+    regexp: "/etc/init.d/dnsmasq restart"
+    line: "/etc/init.d/dnsmasq restart"
+    insertbefore: "exit 0"
+    backup: yes
+    state: present
+
+- name: Retrieve the files that clients will need in order to connect to the OpenVPN server
+  fetch:
+    src: "{{ openvpn_path }}/users/{{ item.user }}/{{ openvpn_server }}.ovpn"
+    dest: "{{ secrets_dir }}/.secrets/openvpn-clients/{{ openvpn_server }}-{{ item.user }}.ovpn"
+    flat: yes
+  with_items: "{{ system_users }}"
+  tags: [vpnusers]

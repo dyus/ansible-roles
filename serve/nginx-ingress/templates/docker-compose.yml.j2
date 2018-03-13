@@ -1,0 +1,13 @@
+version: '3'
+services:
+  serve-nginx-ingress:
+    image: servehub/serve-nginx-ingress:{{ version }}
+    network_mode: host
+    restart: always
+    ports:
+      - 80:80
+    volumes:
+      - /var/data/balancer/cache:/cache/nginx
+    environment:
+      SERVICE_NAME: system/serve-nginx-ingress
+      SERVICE_CHECK_TCP: "true"

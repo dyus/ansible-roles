@@ -1,0 +1,11 @@
+version: '3'
+services:
+  prom-consul-exporter:
+    image: prom/consul-exporter:master
+    network_mode: host
+    restart: always
+    ports:
+      - 9107:9107
+    environment:
+      SERVICE_NAME: system/prom-consul-exporter
+      SERVICE_CHECK_TCP: "true"

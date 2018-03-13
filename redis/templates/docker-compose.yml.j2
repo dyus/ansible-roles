@@ -1,0 +1,13 @@
+version: '3'
+services:
+  redis:
+    image: redis:4.0.8
+    network_mode: host
+    ports:
+      - 6379:6379
+    volumes:
+      - /var/data/redis/data:/data
+    command: redis-server --appendonly yes
+    environment:
+      SERVICE_NAME: "system/redis"
+      SERVICE_CHECK_TCP: "true"

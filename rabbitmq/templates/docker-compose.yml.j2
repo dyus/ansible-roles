@@ -1,0 +1,27 @@
+version: '3'
+services:
+  rabbitmq:
+    image: rabbitmq:3.7-management
+    network_mode: host
+    restart: always
+    ports:
+      - 15672:15672
+    volumes:
+      - /var/data/rabbitmq:/var/lib/rabbitmq
+    environment:
+      RABBITMQ_HIPE_COMPILE: 1
+      SERVICE_NAME: system/rabbitmq
+      SERVICE_CHECK_TCP: "true"
+
+  rabbitmq_prometheus_exporter:
+    image: kbudde/rabbitmq-exporter
+    network_mode: host
+    restart: always
+    ports:
+      - 9207:9207
+    environment:
+      PUBLISH_PORT: "9207"
+      SKIP_QUEUES: "^amq.gen"
+      RABBIT_CAPABILITIES: "no_sort,bert"
+      SERVICE_NAME: "system/prometheus-rabbitmq-exporter"
+      SERVICE_CHECK_TCP: "true"

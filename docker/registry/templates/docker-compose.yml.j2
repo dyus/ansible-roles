@@ -1,0 +1,16 @@
+version: '3'
+services:
+  docker-registry:
+    image: registry:2.5.2
+    network_mode: host
+    restart: always
+    volumes:
+      - /var/data/docker-registry:/var/lib/registry
+    ports:
+      - 5000:5000
+    environment:
+      REGISTRY_LOG_LEVEL: warn
+      REGISTRY_LOG_ACCESSLOG_DISABLED: "true"
+      REGISTRY_STORAGE_DELETE_ENABLED: "true"
+      SERVICE_NAME: system/docker-registry
+      SERVICE_CHECK_TCP: "true"

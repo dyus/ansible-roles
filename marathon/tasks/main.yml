@@ -1,0 +1,26 @@
+---
+- file: path=/etc/marathon/plugins state=directory
+
+- name: Download marathon-secrets-plugin jar
+  get_url:
+    url: https://github.com/servehub/marathon-secrets-plugin/releases/download/v1.2.2/marathon-secrets-plugin-assembly-1.2.2.jar
+    dest: /etc/marathon/plugins/marathon-secrets-plugin-assembly.jar
+
+- name: Copy plugin-conf.json for marathon
+  template: src=plugin-conf.json.j2 dest=/etc/marathon/plugin-conf.json
+
+- name: Copy docker-compose
+  template: src=docker-compose.yml.j2 dest=/etc/compose/marathon.yml
+  register: compose
+
+- name: Run docker container
+  command: docker-compose --file=/etc/compose/marathon.yml up -d --force-recreate
+  when: compose.changed
+
+- name: Save http routing
+  uri:
+    url: http://127.0.0.1:8500/v1/kv/services/routes/system/marathon
+    method: PUT
+    body_format: json
+    body: '{ "routes": [ { "host": "marathon.{{ env_domain }}" } ] }'
+  when: compose.changed

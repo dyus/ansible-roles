@@ -1,0 +1,21 @@
+version: '3'
+services:
+  gocd-server:
+    image: gocd/gocd-server:v{{ version }}
+    network_mode: host
+    restart: always
+    user: 0:1000
+    ports:
+      - 8153:8153
+    volumes:
+      - /var/data/go-server/godata:/godata
+      - /var/data/go-server/home:/home/go
+      - /var/data/go-server/etc:/etc/go
+    environment:
+      AGENT_KEY: "{{ gocd_agent_key }}"
+      GOCD_API_USERNAME: admin
+      GOCD_API_PASSWORD: "{{ gocd_api_password }}"
+      GOCD_PLUGIN_INSTALL_gocd-slack-build-notifier: "https://github.com/ashwanthkumar/gocd-slack-build-notifier/releases/download/v1.4.0-RC11/gocd-slack-notifier-1.4.0-RC11.jar"
+      GO_SERVER_SYSTEM_PROPERTIES: "-Xmx1G -Dfile.encoding=UTF-8 -Dcom.sun.net.ssl.enableECC=false"
+      SERVICE_NAME: system/gocd-server
+      SERVICE_CHECK_TCP: "true"

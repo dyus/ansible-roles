@@ -1,0 +1,364 @@
+<templates>
+  <pipeline name="serve-live-staging-tpl">
+    <stage name="Build">
+      <jobs>
+        <job name="Create-Package">
+          <tasks>
+            <exec command="/bin/bash" workingdir="sources">
+              <arg>-c</arg>
+              <arg>serve build --build-number="${GO_PIPELINE_COUNTER}" --stage-counter="${GO_STAGE_COUNTER}" ${SERVE_EXTRA_ARGS}</arg>
+              <runif status="passed"/>
+            </exec>
+          </tasks>
+          <artifacts>
+            <artifact src="sources/manifest.yml" dest="artifacts"/>
+          </artifacts>
+        </job>
+      </jobs>
+    </stage>
+    <stage name="Deploy-QA">
+      <jobs>
+        <job name="Deploy">
+          <tasks>
+            <fetchartifact pipeline="" stage="Build" job="Create-Package" srcfile="artifacts/manifest.yml" dest="sources">
+              <runif status="passed"/>
+            </fetchartifact>
+            <exec command="/bin/bash" workingdir="sources">
+              <arg>-c</arg>
+              <arg>serve deploy --env=qa --build-number="${GO_PIPELINE_COUNTER}" --stage-counter="${GO_STAGE_COUNTER}" ${SERVE_EXTRA_ARGS}</arg>
+              <runif status="passed"/>
+            </exec>
+            <exec command="/bin/bash" workingdir="sources">
+              <arg>-c</arg>
+              <arg>serve release --env=qa --build-number="${GO_PIPELINE_COUNTER}" --stage-counter="${GO_STAGE_COUNTER}" ${SERVE_EXTRA_ARGS}</arg>
+              <runif status="passed"/>
+            </exec>
+          </tasks>
+        </job>
+      </jobs>
+    </stage>
+    <stage name="Test-QA">
+      <jobs>
+        <job name="Tests">
+          <tasks>
+            <fetchartifact pipeline="" stage="Build" job="Create-Package" srcfile="artifacts/manifest.yml">
+              <runif status="passed"/>
+            </fetchartifact>
+            <exec command="/bin/bash">
+              <arg>-c</arg>
+              <arg>serve test --env=qa --build-number="${GO_PIPELINE_COUNTER}" --stage-counter="${GO_STAGE_COUNTER}" ${SERVE_EXTRA_ARGS}</arg>
+              <runif status="passed"/>
+            </exec>
+            <exec command="/bin/bash">
+              <arg>-c</arg>
+              <arg>mkdir -p tests-output &amp;&amp; touch tests-output/index.xml</arg>
+              <runif status="passed"/>
+            </exec>
+          </tasks>
+          <tabs>
+            <tab name="Test_Results" path="test-artifacts/tests-output/index.html"/>
+          </tabs>
+          <artifacts>
+            <artifact src="tests-output" dest="test-artifacts"/>
+            <test src="tests-output/index.xml" dest="index.xml"/>
+          </artifacts>
+        </job>
+      </jobs>
+    </stage>
+    <stage name="Deploy-Staging">
+      <approval type="manual">
+        <authorization>
+          <role>QA</role>
+        </authorization>
+      </approval>
+      <jobs>
+        <job name="Deploy">
+          <tasks>
+            <fetchartifact pipeline="" stage="Build" job="Create-Package" srcfile="artifacts/manifest.yml" dest="sources">
+              <runif status="passed"/>
+            </fetchartifact>
+            <exec command="/bin/bash" workingdir="sources">
+              <arg>-c</arg>
+              <arg>serve deploy --env=live --build-number="${GO_PIPELINE_COUNTER}" --stage-counter="${GO_STAGE_COUNTER}" ${SERVE_EXTRA_ARGS}</arg>
+              <runif status="passed"/>
+            </exec>
+            <exec command="/bin/bash" workingdir="sources">
+              <arg>-c</arg>
+              <arg>serve release --env=live --build-number="${GO_PIPELINE_COUNTER}" --stage=staging ${SERVE_EXTRA_ARGS}</arg>
+              <runif status="passed"/>
+            </exec>
+          </tasks>
+        </job>
+      </jobs>
+    </stage>
+    <stage name="Test-Live">
+      <jobs>
+        <job name="Tests">
+          <tasks>
+            <fetchartifact pipeline="" stage="Build" job="Create-Package" srcfile="artifacts/manifest.yml">
+              <runif status="passed"/>
+            </fetchartifact>
+            <exec command="/bin/bash">
+              <arg>-c</arg>
+              <arg>serve test --env=live --build-number="${GO_PIPELINE_COUNTER}" --stage-counter="${GO_STAGE_COUNTER}" ${SERVE_EXTRA_ARGS}</arg>
+              <runif status="passed"/>
+            </exec>
+            <exec command="/bin/bash">
+              <arg>-c</arg>
+              <arg>mkdir -p tests-output &amp;&amp; touch tests-output/index.xml</arg>
+              <runif status="passed"/>
+            </exec>
+          </tasks>
+          <tabs>
+            <tab name="Test_Results" path="test-artifacts/tests-output/index.html"/>
+          </tabs>
+          <artifacts>
+            <artifact src="tests-output" dest="test-artifacts"/>
+            <artifact src="tests-output/index.xml" dest="index.xml"/>
+          </artifacts>
+        </job>
+      </jobs>
+    </stage>
+    <stage name="Release-Live">
+      <approval type="manual">
+        <authorization>
+          <role>QA</role>
+        </authorization>
+      </approval>
+      <jobs>
+        <job name="Approve">
+          <tasks>
+            <fetchartifact pipeline="" stage="Build" job="Create-Package" srcfile="artifacts/manifest.yml" dest="sources">
+              <runif status="passed"/>
+            </fetchartifact>
+            <exec command="/bin/bash" workingdir="sources">
+              <arg>-c</arg>
+              <arg>serve release --env=live --build-number="${GO_PIPELINE_COUNTER}" ${SERVE_EXTRA_ARGS}</arg>
+              <runif status="passed"/>
+            </exec>
+          </tasks>
+        </job>
+      </jobs>
+    </stage>
+  </pipeline>
+  <pipeline name="serve-tests-tpl">
+    <stage name="Build">
+      <jobs>
+        <job name="Create-Package">
+          <tasks>
+            <exec command="/bin/bash" workingdir="sources">
+              <arg>-c</arg>
+              <arg>serve build --branch="#{branch}" --build-number="${GO_PIPELINE_COUNTER}" --stage-counter="${GO_STAGE_COUNTER}" ${SERVE_EXTRA_ARGS}</arg>
+              <runif status="passed"/>
+            </exec>
+          </tasks>
+          <artifacts>
+            <artifact src="sources/manifest.yml" dest="artifacts"/>
+          </artifacts>
+        </job>
+      </jobs>
+    </stage>
+    <stage name="Run">
+      <jobs>
+        <job name="Run-Tests">
+          <tasks>
+            <fetchartifact pipeline="" stage="Build" job="Create-Package" srcfile="artifacts/manifest.yml">
+              <runif status="passed"/>
+            </fetchartifact>
+            <exec command="/bin/bash">
+              <arg>-c</arg>
+              <arg>serve test --branch="#{branch}" --build-number="${GO_PIPELINE_COUNTER}" --stage-counter="${GO_STAGE_COUNTER}" ${SERVE_EXTRA_ARGS}</arg>
+              <runif status="passed"/>
+            </exec>
+            <exec command="/bin/bash">
+              <arg>-c</arg>
+              <arg>mkdir -p tests-output &amp;&amp; touch tests-output/index.xml</arg>
+              <runif status="passed"/>
+            </exec>
+          </tasks>
+          <tabs>
+            <tab name="Results" path="test-artifacts/tests-output/index.html"/>
+          </tabs>
+          <artifacts>
+            <artifact src="tests-output" dest="test-artifacts"/>
+            <test src="tests-output/index.xml" dest="index.xml"/>
+          </artifacts>
+        </job>
+      </jobs>
+    </stage>
+  </pipeline>
+  <pipeline name="serve-library-tpl">
+    <stage name="Build">
+      <jobs>
+        <job name="Create-Package">
+          <tasks>
+            <exec command="/bin/bash" workingdir="sources">
+              <arg>-c</arg>
+              <arg>serve build --branch="#{branch}" --build-number="${GO_PIPELINE_COUNTER}" --stage-counter="${GO_STAGE_COUNTER}" ${SERVE_EXTRA_ARGS}</arg>
+              <runif status="passed"/>
+            </exec>
+          </tasks>
+        </job>
+      </jobs>
+    </stage>
+  </pipeline>
+  <pipeline name="serve-service-tpl">
+    <stage name="Build">
+      <jobs>
+        <job name="Create-Package">
+          <tasks>
+            <exec command="/bin/bash" workingdir="sources">
+              <arg>-c</arg>
+              <arg>serve build --build-number="${GO_PIPELINE_COUNTER}" --stage-counter="${GO_STAGE_COUNTER}" ${SERVE_EXTRA_ARGS}</arg>
+              <runif status="passed"/>
+            </exec>
+          </tasks>
+          <artifacts>
+            <artifact src="sources/manifest.yml" dest="artifacts"/>
+          </artifacts>
+        </job>
+      </jobs>
+    </stage>
+    <stage name="Deploy-QA">
+      <jobs>
+        <job name="Deploy">
+          <tasks>
+            <fetchartifact pipeline="" stage="Build" job="Create-Package" srcfile="artifacts/manifest.yml" dest="sources">
+              <runif status="passed"/>
+            </fetchartifact>
+            <exec command="/bin/bash" workingdir="sources">
+              <arg>-c</arg>
+              <arg>serve deploy --env=qa --build-number="${GO_PIPELINE_COUNTER}" --stage-counter="${GO_STAGE_COUNTER}" ${SERVE_EXTRA_ARGS}</arg>
+              <runif status="passed"/>
+            </exec>
+            <exec command="/bin/bash" workingdir="sources">
+              <arg>-c</arg>
+              <arg>serve release --env=qa --build-number="${GO_PIPELINE_COUNTER}" --stage-counter="${GO_STAGE_COUNTER}" ${SERVE_EXTRA_ARGS}</arg>
+              <runif status="passed"/>
+            </exec>
+          </tasks>
+        </job>
+      </jobs>
+    </stage>
+    <stage name="Test-QA">
+      <jobs>
+        <job name="Tests">
+          <tasks>
+            <fetchartifact pipeline="" stage="Build" job="Create-Package" srcfile="artifacts/manifest.yml">
+              <runif status="passed"/>
+            </fetchartifact>
+            <exec command="/bin/bash">
+              <arg>-c</arg>
+              <arg>serve test --env=qa --build-number="${GO_PIPELINE_COUNTER}" --stage-counter="${GO_STAGE_COUNTER}" ${SERVE_EXTRA_ARGS}</arg>
+              <runif status="passed"/>
+            </exec>
+            <exec command="/bin/bash">
+              <arg>-c</arg>
+              <arg>mkdir -p tests-output &amp;&amp; touch tests-output/index.xml</arg>
+              <runif status="passed"/>
+            </exec>
+          </tasks>
+          <tabs>
+            <tab name="Test_Results" path="test-artifacts/tests-output/index.html"/>
+          </tabs>
+          <artifacts>
+            <artifact src="tests-output" dest="test-artifacts"/>
+            <test src="tests-output/index.xml" dest="index.xml"/>
+          </artifacts>
+        </job>
+      </jobs>
+    </stage>
+    <stage name="Deploy-Live">
+      <approval type="manual">
+        <authorization>
+          <role>QA</role>
+        </authorization>
+      </approval>
+      <jobs>
+        <job name="Deploy">
+          <tasks>
+            <fetchartifact pipeline="" stage="Build" job="Create-Package" srcfile="artifacts/manifest.yml" dest="sources">
+              <runif status="passed"/>
+            </fetchartifact>
+            <exec command="/bin/bash" workingdir="sources">
+              <arg>-c</arg>
+              <arg>serve deploy --env=live --build-number="${GO_PIPELINE_COUNTER}" --stage-counter="${GO_STAGE_COUNTER}" ${SERVE_EXTRA_ARGS}</arg>
+              <runif status="passed"/>
+            </exec>
+            <exec command="/bin/bash" workingdir="sources">
+              <arg>-c</arg>
+              <arg>serve release --env=live --build-number="${GO_PIPELINE_COUNTER}" ${SERVE_EXTRA_ARGS}</arg>
+              <runif status="passed"/>
+            </exec>
+          </tasks>
+        </job>
+      </jobs>
+    </stage>
+  </pipeline>
+  <pipeline name="serve-featured-tpl">
+    <stage name="Build">
+      <jobs>
+        <job name="Create-Package">
+          <tasks>
+            <exec command="/bin/bash" workingdir="sources">
+              <arg>-c</arg>
+              <arg>serve build --branch="#{branch}" --build-number="${GO_PIPELINE_COUNTER}" --stage-counter="${GO_STAGE_COUNTER}" ${SERVE_EXTRA_ARGS}</arg>
+              <runif status="passed"/>
+            </exec>
+          </tasks>
+          <artifacts>
+            <artifact src="sources/manifest.yml" dest="artifacts"/>
+          </artifacts>
+        </job>
+      </jobs>
+    </stage>
+    <stage name="Deploy-QA">
+      <jobs>
+        <job name="Deploy">
+          <tasks>
+            <fetchartifact pipeline="" stage="Build" job="Create-Package" srcfile="artifacts/manifest.yml" dest="sources">
+              <runif status="passed"/>
+            </fetchartifact>
+            <exec command="/bin/bash" workingdir="sources">
+              <arg>-c</arg>
+              <arg>serve deploy --branch="#{branch}" --env=qa --build-number="${GO_PIPELINE_COUNTER}" --stage-counter="${GO_STAGE_COUNTER}" ${SERVE_EXTRA_ARGS}</arg>
+              <runif status="passed"/>
+            </exec>
+            <exec command="/bin/bash" workingdir="sources">
+              <arg>-c</arg>
+              <arg>serve release --branch="#{branch}" --env=qa --build-number="${GO_PIPELINE_COUNTER}" --stage-counter="${GO_STAGE_COUNTER}" ${SERVE_EXTRA_ARGS}</arg>
+              <runif status="passed"/>
+            </exec>
+          </tasks>
+        </job>
+      </jobs>
+    </stage>
+    <stage name="Test-QA">
+      <jobs>
+        <job name="Tests">
+          <tasks>
+            <fetchartifact pipeline="" stage="Build" job="Create-Package" srcfile="artifacts/manifest.yml">
+              <runif status="passed"/>
+            </fetchartifact>
+            <exec command="/bin/bash">
+              <arg>-c</arg>
+              <arg>serve test --branch="#{branch}" --env=qa --build-number="${GO_PIPELINE_COUNTER}" --stage-counter="${GO_STAGE_COUNTER}" ${SERVE_EXTRA_ARGS}</arg>
+              <runif status="passed"/>
+            </exec>
+            <exec command="/bin/bash">
+              <arg>-c</arg>
+              <arg>mkdir -p tests-output &amp;&amp; touch tests-output/index.xml</arg>
+              <runif status="passed"/>
+            </exec>
+          </tasks>
+          <tabs>
+            <tab name="Test_Results" path="test-artifacts/tests-output/index.html"/>
+          </tabs>
+          <artifacts>
+            <artifact src="tests-output" dest="test-artifacts"/>
+          </artifacts>
+        </job>
+      </jobs>
+    </stage>
+  </pipeline>
+</templates>

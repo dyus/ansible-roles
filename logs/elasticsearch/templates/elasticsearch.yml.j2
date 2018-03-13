@@ -1,0 +1,12 @@
+cluster.name: "{{ project_name }}"
+network.host: 0.0.0.0
+node.local: true
+
+discovery.zen.minimum_master_nodes: 1
+
+xpack.security.enabled: false
+
+http.cors.enabled: true
+http.cors.allow-origin: "*"
+
+path.repo: ["/usr/share/elasticsearch/data/backups"]

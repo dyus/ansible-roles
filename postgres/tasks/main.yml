@@ -1,0 +1,50 @@
+---
+- name: Copy docker-compose
+  template: src=docker-compose.yml.j2 dest=/etc/compose/postgres.yml
+  register: compose
+
+- name: Run docker container
+  command: docker-compose --file=/etc/compose/postgres.yml up -d --force-recreate
+  when: compose.changed
+
+- name: Copy postgresql.conf
+  template: src=postgresql.conf.j2 dest=/var/data/postgresql/data/postgresql.conf
+  register: conf
+
+- name: Restart postgres if config changed
+  command: docker-compose --file=/etc/compose/postgres.yml restart
+  when: conf.changed
+
+- name: Sleep after restarting
+  command: sleep 15
+  when: conf.changed
+
+- name: Create users
+  shell: docker exec compose_postgres_1 psql -U postgres -c "CREATE USER {{ item.user }} WITH password '{{ item.pass }}'"
+  with_items: "{{ postgres_databases }}"
+  register: res
+  failed_when: "res.stderr and 'already exists' not in res.stderr"
+  changed_when: "'already exists' not in res.stderr"
+
+- name: Create databases
+  shell: docker exec compose_postgres_1 psql -U postgres -c "CREATE DATABASE {{ item.db }} OWNER = {{ item.user }};"
+  with_items: "{{ postgres_databases }}"
+  when: item.db is defined
+  register: res
+  failed_when: "res.stderr and 'already exists' not in res.stderr"
+  changed_when: "'already exists' not in res.stderr"
+
+- name: Create exstensions for databases
+  shell: docker exec compose_postgres_1 psql -U postgres -d {{item.db}} -c "CREATE EXTENSION IF NOT EXISTS {{item.extension}};"
+  with_items: "{{ postgres_extensions }}"
+
+- cron:
+    name: "Backup all databases"
+    minute: 10
+    hour: 2
+    cron_file: "postgres-backup"
+    user: root
+    job: >
+      docker exec compose_postgres_1 /bin/bash -c "pg_dumpall -U postgres | gzip > /var/lib/postgresql/data/backup-all.sql.gz"
+      && docker run --rm -v /var/data/postgresql/data:/data:ro -v /etc/{{ project_name }}/secrets/aws-backup-s3cfg:/root/.s3cfg
+      samepagelabs/s3cmd put /data/backup-all.sql.gz s3://{{ s3_backet_for_backups }}/db/postgres-all.`date +\%a`.sql.gz

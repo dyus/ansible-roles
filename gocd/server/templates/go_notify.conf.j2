@@ -1,0 +1,12 @@
+gocd.slack {
+  login = "admin"
+  password = "{{ gocd_api_password }}"
+  server-host = "https://go.{{ inf_domain }}/"
+  api-server-host = "http://localhost:8153/"
+  webhookUrl = "{{ gocd_slack_webhook_url }}"
+
+  slackDisplayName = "gocd"
+  display-console-log-links = true
+  displayMaterialChanges = true
+  process-all-rules = true
+}

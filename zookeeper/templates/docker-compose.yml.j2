@@ -1,0 +1,12 @@
+version: '3'
+services:
+  zk:
+    image: zookeeper:3.4.11  # 3.5 not worked!
+    network_mode: host
+    restart: always
+    volumes:
+      - /var/data/zookeeper/data:/data
+      - /var/data/zookeeper/datalog:/datalog
+    environment:
+      ZOO_MY_ID: {{ ec2_tag_seq }}
+      ZOO_SERVERS: {% for host in groups['tag_role_zookeeper'] %}server.{{ hostvars[host]['ec2_tag_seq'] }}={{ hostvars[host]['ec2_private_ip_address'] }}:2888:3888 {% endfor %}

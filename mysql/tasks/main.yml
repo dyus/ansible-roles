@@ -1,0 +1,8 @@
+---
+- name: Copy docker-compose for mysql
+  template: src=docker-compose.yml.j2 dest=/etc/mysql-compose.yml
+  register: compose
+
+- name: Run docker container with mysql
+  command: docker-compose --file=/etc/mysql-compose.yml up -d --force-recreate
+  when: compose.changed

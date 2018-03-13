@@ -1,0 +1,20 @@
+---
+- name: Cleanup old serve versions
+  shell: rm -f /usr/local/bin/serve-v*-linux-amd64
+  args:
+    creates: /usr/local/bin/serve-v{{ version }}-linux-amd64
+
+- name: Download latest serve release
+  command: curl -Lfvs "https://github.com/servehub/serve/releases/download/v{{ version }}/serve-v{{ version }}-linux-amd64" -o /usr/local/bin/serve-v{{ version }}-linux-amd64
+  args:
+    creates: /usr/local/bin/serve-v{{ version }}-linux-amd64
+  register: newver
+
+- copy: src=/usr/local/bin/serve-v{{ version }}-linux-amd64 dest=/usr/local/bin/serve remote_src=true mode=a+x
+  when: newver.changed
+
+- name: Copy serve local configs
+  copy: src={{ item }} dest=/etc/serve/
+  with_items:
+    - "{{ playbook_dir }}/files/serve/conf.d"
+    - "{{ playbook_dir }}/files/serve/include.d"

@@ -1,0 +1,8 @@
+---
+- name: Copy docker-compose
+  template: src=docker-compose.yml.j2 dest=/etc/compose/docker-registrator.yml
+  register: compose
+
+- name: Run docker container
+  command: docker-compose --file=/etc/compose/docker-registrator.yml up -d --force-recreate
+  when: compose.changed

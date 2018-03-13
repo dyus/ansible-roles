@@ -1,0 +1,44 @@
+---
+- name: Copy elasticsearch.yml config
+  template: src=elasticsearch.yml.j2 dest=/etc/elasticsearch.yml
+  register: conf
+
+- name: Copy docker-compose
+  template: src=docker-compose.yml.j2 dest=/etc/compose/elasticsearch.yml
+  register: compose
+
+- name: Run docker container
+  command: docker-compose --file=/etc/compose/elasticsearch.yml up -d --force-recreate
+  when: compose.changed or conf.changed
+
+- name: Routing for elasticsearch
+  command: >
+    curl -XPUT -f -d '{"routes":[{"host":"elastic.{{ env_domain }}"}]}' http://127.0.0.1:8500/v1/kv/services/routes/system/elasticsearch
+  when: compose.changed
+
+- set_fact:
+    curator_cmd: >
+      docker run --rm --net=host --entrypoint=curator_cli bobrik/curator:4.2.6 delete_indices
+        --ignore_empty_list
+        --filter_list '
+          [
+            { "filtertype": "pattern", "kind": "prefix", "value": "journalbeat-" },
+            { "filtertype": "age", "source": "name", "direction": "older", "timestring": "\%Y.\%m.\%d", "unit": "days", "unit_count": 7 }
+          ]' 2>&1 | logger -t curator
+
+- cron:
+    name: "Remove old elasticsearch log indices"
+    minute: 0
+    hour: 1
+    cron_file: "curator"
+    user: root
+    job: "{{ curator_cmd | regex_replace('\\s+', ' ') }}"
+
+- name: Install elastic plugins
+  shell: 'sleep 10 && docker exec etc_elasticsearch_1 bin/plugin install lmenezes/elasticsearch-kopf/master'
+  when: compose.changed or conf.changed
+
+- name: Configure snapshots for backup
+  command: >
+    curl -XPUT -f -d '{"type": "fs", "settings": {"location": "/usr/share/elasticsearch/data/backups"}}' http://127.0.0.1:9200/_snapshot/backups
+  when: compose.changed or conf.changed

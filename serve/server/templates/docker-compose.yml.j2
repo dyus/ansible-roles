@@ -1,0 +1,17 @@
+version: '3'
+services:
+  serve-server:
+    image: servehub/serve-server:{{ version }}
+    network_mode: host
+    restart: always
+    ports:
+      - 8088:8088
+    volumes:
+      - /etc/serve:/etc/serve
+      - /etc/serve/git_rsa_key:/root/.ssh/id_rsa
+      - /usr/local/bin:/usr/local/bin
+      - /var/data/serve-server:/tmp/serve
+    environment:
+      SERVICE_NAME: system/serve-server
+      SERVICE_VERSION: "v{{ version }}"
+      SERVICE_CHECK_TCP: "true"

@@ -1,0 +1,16 @@
+---
+- name: Copy docker-compose
+  template: src=docker-compose.yml.j2 dest=/etc/compose/artifactory.yml
+  register: compose
+
+- name: Run docker container
+  command: docker-compose --file=/etc/compose/artifactory.yml up -d --force-recreate
+  when: compose.changed
+
+- name: Save http routing
+  uri:
+    url: http://127.0.0.1:8500/v1/kv/services/routes/system/artifactory
+    method: PUT
+    body_format: json
+    body: '{ "routes": [ { "host": "art.{{ inf_domain }}" } ] }'
+  when: compose.changed

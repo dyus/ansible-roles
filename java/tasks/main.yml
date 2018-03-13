@@ -1,0 +1,15 @@
+---
+- name: Install apt-add-repository command
+  apt: name=python-software-properties
+
+- name: Install WebUpd8 Team Java PPA (for Oracle Java)
+  apt_repository: repo=ppa:webupd8team/java state=present
+
+- name: Accept Oracle License
+  debconf: name=oracle-java8-installer question='shared/accepted-oracle-license-v1-1' value='true' vtype='select'
+
+- name: Install Oracle Java from PPA
+  apt: name="{{ item }}" state=latest
+  with_items:
+    - oracle-java8-installer
+    - oracle-java8-set-default

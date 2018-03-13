@@ -1,0 +1,19 @@
+version: "3"
+services:
+  gitlab:
+    image: gitlab/gitlab-ce:10.4.4-ce.0
+    restart: always
+    hostname: "gitlab.{{ inf_domain }}"
+    ports:
+      - "9080:80"
+      - "9022:22"
+    volumes:
+      - /var/data/gitlab/config:/etc/gitlab
+      - /var/data/gitlab/logs:/var/log/gitlab
+      - /var/data/gitlab/data:/var/opt/gitlab
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://gitlab.{{ inf_domain }}'
+      SERVICE_80_NAME: system/gitlab
+      SERVICE_22_IGNORE: "true"
+      SERVICE_CHECK_TCP: "true"

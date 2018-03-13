@@ -1,0 +1,25 @@
+---
+- name: Copy docker-compose
+  template: src=docker-compose.yml.j2 dest=/etc/compose/docker-registry.yml
+  register: compose
+
+- name: Run docker container
+  command: docker-compose --file=/etc/compose/docker-registry.yml up -d --force-recreate
+  when: compose.changed
+
+- name: Save http routing
+  uri:
+    url: http://127.0.0.1:8500/v1/kv/services/routes/system/docker-registry
+    method: PUT
+    body_format: json
+    body: '{ "routes": [ { "host": "{{ docker_registry }}" } ] }'
+  when: compose.changed
+
+- cron:
+    name: "Cleanup old images"
+    cron_file: "docker-registry-cleanup"
+    hour: 5
+    user: root
+    job: >
+      docker run --rm -ti lhanxetus/deckschrubber -registry http://{{ docker_registry }} -max_repos 256 -month 2 -latest 3
+      && docker exec compose_docker-registry_1 bin/registry garbage-collect /etc/docker/registry/config.yml

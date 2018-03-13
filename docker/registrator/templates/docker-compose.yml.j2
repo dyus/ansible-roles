@@ -1,0 +1,9 @@
+version: '3'
+services:
+  docker-registrator:
+    image: gliderlabs/registrator:v7
+    network_mode: host
+    restart: always
+    command: -ip={{ ansible_default_ipv4.address }} consul://127.0.0.1:8500
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock

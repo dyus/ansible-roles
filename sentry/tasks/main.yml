@@ -1,0 +1,17 @@
+---
+- name: Copy docker-compose for sentry
+  template: src=docker-compose.yml.j2 dest=/etc/sentry-compose.yml
+  register: compose
+
+- name: Run docker container with sentry
+  command: docker-compose --file=/etc/sentry-compose.yml up -d --force-recreate
+  when: compose.changed
+
+- name: Run upgrade
+  command: docker exec etc_sentry_1 sentry upgrade --noinput
+  when: compose.changed
+
+- name: Routing for sentry
+  command: >
+    curl -XPUT -f -d '{"routes":[{"host":"sentry.{{ env_domain }}"}]}' http://127.0.0.1:8500/v1/kv/services/routes/system/sentry
+  when: compose.changed

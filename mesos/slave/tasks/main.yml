@@ -1,0 +1,11 @@
+---
+- name: Configure logrotate for mesos jobs stderr/stdout files
+  copy: src=logrotate.conf dest=/etc/logrotate.d/mesos-slave
+
+- name: Copy docker-compose
+  template: src=docker-compose.yml.j2 dest=/etc/compose/mesos-slave.yml
+  register: compose
+
+- name: Run docker container
+  command: docker-compose --file=/etc/compose/mesos-slave.yml up -d --force-recreate
+  when: compose.changed

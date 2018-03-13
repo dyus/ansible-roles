@@ -1,0 +1,29 @@
+version: '3'
+services:
+  prom-node-exporter:
+    image: prom/node-exporter:v0.15.2
+    network_mode: host
+    restart: always
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.ignored-mount-points=^/(rootfs/)?(sys|proc|dev|host|etc|host)($$|/)'
+      - '--collector.filesystem.ignored-fs-types=^(sysfs|procfs|autofs|debugfs|cgroup|overlay|devpts|nsfs|tmpfs|fusectl|mqueue|proc|fuse.lxcfs)$$'
+      - '--no-collector.arp'
+      - '--no-collector.bcache'
+      - '--no-collector.conntrack'
+      - '--no-collector.edac'
+      - '--no-collector.entropy'
+      - '--no-collector.infiniband'
+      - '--no-collector.wifi'
+      - '--no-collector.xfs'
+      - '--no-collector.zfs'
+    ports:
+      - 9100:9100
+    volumes:
+      - /proc:/host/proc
+      - /sys:/host/sys
+      - /:/rootfs
+    environment:
+      SERVICE_NAME: system/prom-node-exporter
+      SERVICE_CHECK_TCP: "true"

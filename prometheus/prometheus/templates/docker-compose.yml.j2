@@ -1,0 +1,20 @@
+version: '3'
+services:
+  prometheus:
+    image: prom/prometheus:v2.2.0
+    network_mode: host
+    restart: always
+    ports:
+      - 9090:9090
+    volumes:
+      - /etc/prometheus:/etc/prometheus
+      - /var/data/prometheus:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention=7d'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    environment:
+      SERVICE_NAME: system/prometheus
+      SERVICE_CHECK_TCP: "true"

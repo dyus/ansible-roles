@@ -1,0 +1,52 @@
+---
+- file: path="{{ item }}" state=directory
+  with_items:
+    - /var/data/go-server/home/.ssh
+    - /var/data/go-server/godata/config
+    - /var/data/go-server/etc
+
+- copy: src="{{ git_rsa_key }}" dest=/var/data/go-server/home/.ssh/id_rsa mode=400
+
+- lineinfile: dest=/var/data/go-server/home/.ssh/config create=yes mode=400 regexp="^\s*StrictHostKeyChecking no" line="StrictHostKeyChecking no"
+
+- name: Generate gocd users
+  lineinfile: dest=/var/data/go-server/etc/passwd regexp="^{{ item.user }}:" line="{{ item.user }}:{SHA}{{ item.sha1 }}" create=yes
+  with_items: "{{ system_users }}"
+  tags: [newusers]
+
+- name: Cleanup deleted users
+  lineinfile: dest=/var/data/go-server/etc/passwd regexp="^{{ item.user }}:" state=absent
+  with_items: "{{ deleted_users }}"
+  tags: [newusers]
+
+- name: Configure go_notify
+  template: src=go_notify.conf.j2 dest=/var/data/go-server/home/go_notify.conf
+  register: gonotify
+
+- name: Copy docker-compose
+  template: src=docker-compose.yml.j2 dest=/etc/compose/gocd-server.yml
+  register: compose
+
+- name: Run docker container
+  command: docker-compose --file=/etc/compose/gocd-server.yml up -d --force-recreate
+  when: compose.changed or gonotify.changed
+
+- name: Save http routing for gocd web
+  uri:
+    url: http://127.0.0.1:8500/v1/kv/services/routes/system/gocd-server
+    method: PUT
+    body_format: json
+    body: '{ "routes": [ { "host": "go.{{ inf_domain }}" } ] }'
+  when: compose.changed
+
+- cron:
+    name: "Backup server data"
+    minute: 30
+    hour: "2,16"
+    cron_file: "gocd-backup"
+    user: root
+    job: >
+      curl -XPOST -k https://localhost:8154/go/api/backups -u "admin:{{ gocd_api_password }}" -H "Confirm: true" -H "Accept: application/vnd.go.cd.v1+json"
+      && docker run --rm -v /var/data/go-server/lib/artifacts/serverBackups:/data:ro -v /etc/{{ project_name }}/secrets/aws-backup-s3cfg:/root/.s3cfg
+      samepagelabs/s3cmd sync --no-preserve /data/ s3://{{ s3_backet_for_backups }}/gocd/
+      && find /var/data/go-server/lib/artifacts/serverBackups/* -maxdepth 0 -ctime +30 -type d -exec rm -rf {} +

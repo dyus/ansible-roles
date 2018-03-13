@@ -1,0 +1,45 @@
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'ivy-publish'
+
+    compileJava {
+        options.encoding = "UTF-8"
+    }
+
+    publishing {
+        publications {
+            ivyJava(IvyPublication) {
+                from components.java
+            }
+        }
+        repositories {
+            ivy {
+                credentials {
+                    username "admin"
+                    password "password"
+                }
+                url "http://art.{{ inf_domain }}/artifactory/ivy-release-local"
+            }
+        }
+    }
+
+    buildscript {
+        repositories {
+            ivy {
+                url "http://art.{{ inf_domain }}/artifactory/ivy-virtual-proxy"
+            }
+            maven {
+                url "http://art.{{ inf_domain }}/artifactory/maven-virtual-proxy"
+            }
+        }
+    }
+
+    repositories {
+        ivy {
+            url "http://art.{{ inf_domain }}/artifactory/ivy-virtual-proxy"
+        }
+        maven {
+            url "http://art.{{ inf_domain }}/artifactory/maven-virtual-proxy"
+        }
+    }
+}

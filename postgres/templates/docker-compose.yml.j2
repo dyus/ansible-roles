@@ -1,0 +1,21 @@
+version: '3'
+services:
+  postgres:
+    image: postgres:10.1
+    network_mode: host
+    restart: always
+    volumes:
+      - /var/data/postgresql/data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: "md50137dd0acb4c0a67cc04e0b7b91fce71"
+
+  postgres_prometheus_exporter:
+    image: wrouesnel/postgres_exporter:v0.3.0
+    network_mode: host
+    restart: always
+    ports:
+      - 9187:9187
+    environment:
+      DATA_SOURCE_NAME: "postgresql://postgres@localhost:5432/?sslmode=disable"
+      SERVICE_NAME: "system/prometheus-postgres-dbexporter"
+      SERVICE_CHECK_TCP: "true"

@@ -1,0 +1,11 @@
+version: '3'
+services:
+  vault:
+    image: vault:0.7.0
+    network_mode: host
+    restart: always
+    command: server
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - /etc/vault:/vault/config

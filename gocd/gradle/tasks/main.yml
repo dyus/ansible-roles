@@ -1,0 +1,5 @@
+---
+- file: path=/root/.gradle state=directory
+
+- name: Base gradle config file ~/.gradle/init.gradle
+  template: src=init.gradle.j2 dest=/root/.gradle/init.gradle

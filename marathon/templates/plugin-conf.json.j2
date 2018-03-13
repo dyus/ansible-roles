@@ -1,0 +1,13 @@
+{
+  "plugins": {
+    "secretVars": {
+      "plugin": "mesosphere.marathon.plugin.task.RunSpecTaskProcessor",
+      "implementation": "servehub.marathon.plugin.MarathonSecretsPlugin",
+      "configuration": {
+        "varPrefix": "SECRET_",
+        "privateKey": "{{ marathon_secret_vars_key }}",
+        "secretsUrl": "http://127.0.0.1:8500/v1/kv/services/secrets?raw=true"
+      }
+    }
+  }
+}

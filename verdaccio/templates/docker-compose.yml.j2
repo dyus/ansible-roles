@@ -1,0 +1,12 @@
+version: '3'
+services:
+  verdaccio:
+    image: verdaccio/verdaccio:2.7.4
+    restart: always
+    ports:
+      - 4873:4873
+    volumes:
+      - /var/data/verdaccio/storage:/verdaccio/storage
+    environment:
+      SERVICE_NAME: system/verdaccio
+      SERVICE_CHECK_TCP: "true"

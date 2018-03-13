@@ -1,0 +1,72 @@
+journalbeat:
+  seek_position: cursor
+  cursor_seek_fallback: tail
+
+  write_cursor_state: true
+  cursor_state_file: /data/journalbeat-cursor-state
+  cursor_flush_period: 5s
+
+  pending_queue.file: /data/journalbeat-pending-queue
+  pending_queue.flush_period: 5s
+
+  clean_field_names: true
+
+name: journalbeat
+
+logging.level: warning
+logging.to_files: false
+logging.metrics.enabled: false
+
+processors:
+  - decode_json_fields:
+      fields: ["message"]
+      process_array: false
+      target: ""
+      overwrite_keys: true
+      max_depth: 1
+
+  - include_fields:
+      fields:
+        - "container_id"
+        - "container_name"
+        - "container_tag"
+        - "correlation_id"
+        - "errno"
+        - "host"
+        - "hostname"
+        - "http_referrer"
+        - "http_user_agent"
+        - "http_x_forwarded_for"
+        - "json"
+        - "level"
+        - "logger_name"
+        - "message"
+        - "name"
+        - "remote_addr"
+        - "remote_address"
+        - "request_method"
+        - "request_time"
+        - "response_size"
+        - "response_status"
+        - "service_name"
+        - "service_tag"
+        - "service_version"
+        - "source_realtime_timestamp"
+        - "stack_trace"
+        - "status"
+        - "thread_name"
+        - "uri"
+
+output.elasticsearch:
+  enabled: true
+  hosts: ["{{ elasticsearch_host }}:9200"]
+  max_retries: 10
+  bulk_max_size: 100
+  timeout: 90
+  flush_interval: 3s
+
+  template.enabled: true
+  template.name: "journalbeat"
+  template.versions.6x.enabled: false
+  template.versions.2x.enabled: true
+  template.versions.2x.path: "${path.config}/journalbeat.template.json"
