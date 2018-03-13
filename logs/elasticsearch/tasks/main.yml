@@ -35,7 +35,7 @@
     job: "{{ curator_cmd | regex_replace('\\s+', ' ') }}"
 
 - name: Install elastic plugins
-  shell: 'sleep 10 && docker exec etc_elasticsearch_1 bin/plugin install lmenezes/elasticsearch-kopf/master'
+  shell: 'sleep 10 && docker exec compose_elasticsearch_1 bin/plugin install lmenezes/elasticsearch-kopf/master'
   when: compose.changed or conf.changed
 
 - name: Configure snapshots for backup

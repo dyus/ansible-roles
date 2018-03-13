@@ -5,11 +5,11 @@
   register: conf
 
 - name: Copy docker-compose for vault
-  template: src=docker-compose.yml.j2 dest=/etc/vault-docker-compose.yml
+  template: src=docker-compose.yml.j2 dest=/etc/compose/vault.yml
   register: compose
 
 - name: Run docker container with vault
-  command: docker-compose --file=/etc/vault-docker-compose.yml up -d --force-recreate
+  command: docker-compose --file=/etc/compose/vault.yml up -d --force-recreate
   when: compose.changed or conf.changed
 
 - name: Save routing info to consul for access from load balancer

@@ -1,14 +1,14 @@
 ---
 - name: Copy docker-compose for sentry
-  template: src=docker-compose.yml.j2 dest=/etc/sentry-compose.yml
+  template: src=docker-compose.yml.j2 dest=/etc/compose/sentry.yml
   register: compose
 
 - name: Run docker container with sentry
-  command: docker-compose --file=/etc/sentry-compose.yml up -d --force-recreate
+  command: docker-compose --file=/etc/compose/sentry.yml up -d --force-recreate
   when: compose.changed
 
 - name: Run upgrade
-  command: docker exec etc_sentry_1 sentry upgrade --noinput
+  command: docker exec compose_sentry_1 sentry upgrade --noinput
   when: compose.changed
 
 - name: Routing for sentry
