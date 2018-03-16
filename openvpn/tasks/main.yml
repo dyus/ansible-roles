@@ -250,7 +250,7 @@
 - name: Retrieve the files that clients will need in order to connect to the OpenVPN server
   fetch:
     src: "{{ openvpn_path }}/users/{{ item.user }}/{{ openvpn_server }}.ovpn"
-    dest: "{{ secrets_dir }}/.secrets/openvpn-clients/{{ openvpn_server }}-{{ item.user }}.ovpn"
+    dest: "{{ secrets_dir }}/openvpn-clients/{{ openvpn_server }}-{{ item.user }}.ovpn"
     flat: yes
   with_items: "{{ system_users }}"
   tags: [vpnusers]

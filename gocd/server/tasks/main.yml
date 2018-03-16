@@ -1,16 +1,19 @@
 ---
-- file: path="{{ item }}" state=directory
+- file: path="{{ item }}" state=directory owner=1000 group=1000
   with_items:
     - /var/data/go-server/home/.ssh
     - /var/data/go-server/godata/config
     - /var/data/go-server/etc
 
-- copy: src="{{ git_rsa_key }}" dest=/var/data/go-server/home/.ssh/id_rsa mode=400
+- copy: src="{{ git_rsa_key }}" dest=/var/data/go-server/home/.ssh/id_rsa mode=0400 owner=1000 group=1000
 
-- lineinfile: dest=/var/data/go-server/home/.ssh/config create=yes mode=400 regexp="^\s*StrictHostKeyChecking no" line="StrictHostKeyChecking no"
+- lineinfile: dest=/var/data/go-server/home/.ssh/config create=yes mode=0400 regexp="^\s*StrictHostKeyChecking no" line="StrictHostKeyChecking no" owner=1000 group=1000
+
+- name: Login/password for gocd api
+  lineinfile: dest=/var/data/go-server/etc/passwd regexp="^admin:" line="admin:{SHA}{{ gocd_api_password_sha1 }}" create=yes owner=1000 group=1000
 
 - name: Generate gocd users
-  lineinfile: dest=/var/data/go-server/etc/passwd regexp="^{{ item.user }}:" line="{{ item.user }}:{SHA}{{ item.sha1 }}" create=yes
+  lineinfile: dest=/var/data/go-server/etc/passwd regexp="^{{ item.user }}:" line="{{ item.user }}:{SHA}{{ item.sha1 }}" create=yes owner=1000 group=1000
   with_items: "{{ system_users }}"
   tags: [newusers]
 
@@ -20,7 +23,7 @@
   tags: [newusers]
 
 - name: Configure go_notify
-  template: src=go_notify.conf.j2 dest=/var/data/go-server/home/go_notify.conf
+  template: src=go_notify.conf.j2 dest=/var/data/go-server/home/go_notify.conf owner=1000 group=1000
   register: gonotify
 
 - name: Copy docker-compose

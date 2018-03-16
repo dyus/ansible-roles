@@ -2,10 +2,10 @@
 - group: name=gocd
 - user: name=gocd group=gocd groups=docker shell=/bin/bash
 
-- file: path=/home/gocd/.ssh state=directory
-- copy: src="{{ git_rsa_key }}" dest=/home/gocd/.ssh/id_rsa mode=400
+- file: path=/home/gocd/.ssh state=directory owner=gocd group=gocd
+- copy: src="{{ git_rsa_key }}" dest=/home/gocd/.ssh/id_rsa mode=0400 owner=gocd group=gocd
 
-- lineinfile: dest=/home/gocd/.ssh/config create=yes mode=400 regexp="^\s*StrictHostKeyChecking no" line="StrictHostKeyChecking no"
+- lineinfile: dest=/home/gocd/.ssh/config create=yes regexp="^\s*StrictHostKeyChecking no" line="StrictHostKeyChecking no" mode=0400 owner=gocd group=gocd
 
 - apt: name=supervisor state=present
 
