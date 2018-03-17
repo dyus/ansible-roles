@@ -1,16 +1,13 @@
 ---
-- group: name=gocd
-- user: name=gocd group=gocd groups=docker shell=/bin/bash
+- file: path=/root/.ssh state=directory
+- copy: src="{{ git_rsa_key }}" dest=/root/.ssh/id_rsa mode=0400
 
-- file: path=/home/gocd/.ssh state=directory owner=gocd group=gocd
-- copy: src="{{ git_rsa_key }}" dest=/home/gocd/.ssh/id_rsa mode=0400 owner=gocd group=gocd
+- lineinfile: dest=/root/.ssh/config create=yes regexp="^\s*StrictHostKeyChecking no" line="StrictHostKeyChecking no" mode=0400
 
-- lineinfile: dest=/home/gocd/.ssh/config create=yes regexp="^\s*StrictHostKeyChecking no" line="StrictHostKeyChecking no" mode=0400 owner=gocd group=gocd
-
-- file: path=/home/gocd/.gradle state=directory owner=gocd group=gocd recurse=true
+- file: path=/root/.gradle state=directory recurse=true
 
 - name: Base gradle config file
-  template: src=init.gradle.j2 dest=/home/gocd/.gradle/init.gradle
+  template: src=init.gradle.j2 dest=/root/.gradle/init.gradle
 
 - apt: name=supervisor state=present
 
@@ -49,7 +46,7 @@
   template: src=autoregister.properties.j2 dest=/var/data/go-{{ agent_name }}/config/autoregister.properties
   register: autprop
 
-- file: path=/var/data/go-{{ agent_name }}/ owner=gocd group=gocd recurse=true state=directory
+- file: path=/var/data/go-{{ agent_name }}/ state=directory
   when: curversion.changed and curversion.stdout != version
 
 - name: Restart supervisor

@@ -1,7 +1,6 @@
 [program:go-{{ agent_name }}]
 command = /var/data/go-{{ agent_name }}/agent.sh
 directory = /var/data/go-{{ agent_name }}
-user=gocd
 environment =
   SERVICE_NAME="go-{{ agent_name }}",
   GO_SERVER_URL="https://{{ gocd_server_domain }}:8154/go"
