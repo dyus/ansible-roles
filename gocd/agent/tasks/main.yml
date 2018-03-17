@@ -7,6 +7,11 @@
 
 - lineinfile: dest=/home/gocd/.ssh/config create=yes regexp="^\s*StrictHostKeyChecking no" line="StrictHostKeyChecking no" mode=0400 owner=gocd group=gocd
 
+- file: path=/home/gocd/.gradle state=directory owner=gocd group=gocd recurse=true
+
+- name: Base gradle config file
+  template: src=init.gradle.j2 dest=/home/gocd/.gradle/init.gradle
+
 - apt: name=supervisor state=present
 
 - file: path=/tmp/go-agent/{{ version }} state=directory
