@@ -1,0 +1,23 @@
+settings {
+  delay          = 3,
+  maxProcesses   = 5,
+  statusFile     = "/tmp/lsyncd.status",
+  logfile        = "/var/log/lsyncd.log",
+}
+
+{% for host in play_hosts if host != inventory_hostname %}
+{% for dir in synced_dirs %}
+sync {
+  default.rsync,
+  source = "{{ dir }}",
+  target = "{{ lsyncd_user }}@{{ host }}:{{ dir }}",
+  delete = "running",
+  rsync = {
+    archive = true,
+    compress = false,
+    temp_dir = "/tmp",
+    rsh = "/usr/bin/ssh -p 22 -l {{ lsyncd_user }} -i /etc/lsyncd/lsyncd_ssh_key -o StrictHostKeyChecking=no",
+  }
+}
+{% endfor %}
+{% endfor %}
