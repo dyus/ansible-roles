@@ -8,5 +8,5 @@ services:
       - /var/data/zookeeper/data:/data
       - /var/data/zookeeper/datalog:/datalog
     environment:
-      ZOO_MY_ID: {{ ec2_tag_seq }}
-      ZOO_SERVERS: {% for host in groups['tag_role_zookeeper'] %}server.{{ hostvars[host]['ec2_tag_seq'] }}={{ hostvars[host]['ec2_private_ip_address'] }}:2888:3888 {% endfor %}
+      ZOO_MY_ID: "{{ tags.seq }}"
+      ZOO_SERVERS: "{% for host in groups['tag_role_zookeeper'] %}server.{{ hostvars[host]['tags']['seq'] }}={% if hostvars[host]['ansible_default_ipv4']['address'] == inventory_hostname %}0.0.0.0{% else %}{{ hostvars[host]['ansible_default_ipv4']['address'] }}{% endif %}:2888:3888 {% endfor %}"

@@ -8,7 +8,9 @@ services:
       - 8088:8088
     volumes:
       - /etc/serve:/etc/serve
+{% if git_rsa_key is defined and git_rsa_key != "" %}
       - /etc/serve/git_rsa_key:/root/.ssh/id_rsa
+{% endif %}
       - /usr/local/bin:/usr/local/bin
       - /var/data/serve-server:/tmp/serve
     environment:

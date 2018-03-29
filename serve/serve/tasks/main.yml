@@ -15,6 +15,7 @@
 
 - name: Copy serve local configs
   copy: src={{ item }} dest=/etc/serve/
+  ignore_errors: true
   with_items:
     - "{{ playbook_dir }}/files/serve/conf.d"
     - "{{ playbook_dir }}/files/serve/include.d"
