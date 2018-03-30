@@ -26,4 +26,4 @@
     user: root
     job: >
       docker run --rm -v /var/data/grafana:/data:ro -v /etc/{{ project_name }}/secrets/aws-backup-s3cfg:/root/.s3cfg
-      samepagelabs/s3cmd sync --no-preserve /data/grafana.db s3://{{ s3_backet_for_backups }}/grafana/grafana-`date +\%d`.db
+      samepagelabs/s3cmd put /data/grafana.db s3://{{ s3_backet_for_backups }}/grafana/grafana-`date +\%d`.db
