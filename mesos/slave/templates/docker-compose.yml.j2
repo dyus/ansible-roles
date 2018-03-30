@@ -5,8 +5,6 @@ services:
     network_mode: host
     privileged: true
     restart: always
-    ports:
-      - 5051:5051
     volumes:
       - /usr/bin/docker:/usr/bin/docker
       - /var/run/docker.sock:/var/run/docker.sock
@@ -14,19 +12,22 @@ services:
       - /cgroup:/cgroup
       - /var/data/mesos-slave/logs:/mesos/logs
       - /var/data/mesos-slave/work:/mesos/work
+    ports:
+      - 5051:5051
+    command: >
+      --master=zk://{% for host in groups['tag_role_zookeeper'] %}{{ hostvars[host]['ansible_default_ipv4']['address'] }}:2181{% if not loop.last %},{% endif %}{% endfor %}/mesos
+      --containerizers=docker
+      --resources=ports(*):[11000-11999]
+      --port=5051
+      --hostname={{ tags.host }}
+      --switch_user=0
+      --logging_level=WARNING
+      --log_dir=/mesos/logs
+      --work_dir=/mesos/work
+      --gc_delay=1days
+      --executor_shutdown_grace_period=30secs
+      --executor_registration_timeout=30mins
+      --systemd_enable_support="false"
     environment:
-      MESOS_MASTER: zk://{% for host in groups['tag_role_zookeeper'] %}{{ hostvars[host]['ec2_private_ip_address'] }}:2181{% if not loop.last %},{% endif %}{% endfor %}/mesos
-      MESOS_CONTAINERIZERS: mesos,docker
-      MESOS_RESOURCES: ports(*):[11000-11999]
-      MESOS_PORT: 5051
-      MESOS_HOSTNAME: {{ ec2_tag_host }}
-      MESOS_SWITCH_USER: 0
-      MESOS_LOGGING_LEVEL: INFO
-      MESOS_LOG_DIR: /mesos/logs
-      MESOS_WORK_DIR: /mesos/work
-      MESOS_GC_DELAY: 1days
-      MESOS_EXECUTOR_SHUTDOWN_GRACE_PERIOD: 30secs
-      MESOS_EXECUTOR_REGISTRATION_TIMEOUT: 30mins
-      MESOS_SYSTEMD_ENABLE_SUPPORT: "false"
       SERVICE_NAME: system/mesos-slave
       SERVICE_CHECK_TCP: "true"

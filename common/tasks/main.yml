@@ -68,7 +68,7 @@
   template: src=backup-s3cfg.j2 dest=/etc/{{ project_name }}/secrets/aws-backup-s3cfg
   when: s3_backups_aws_id != ""
 
-- lineinfile: dest=/etc/resolvconf/resolv.conf.d/head regexp="^nameserver {{ internal_dns_server }}" line="nameserver {{ internal_dns_server }}"
+- lineinfile: dest=/etc/resolvconf/resolv.conf.d/base regexp="^nameserver {{ internal_dns_server }}" line="nameserver {{ internal_dns_server }}"
   register: resolvconf
   when: internal_dns_server != ""
 

@@ -8,14 +8,16 @@ services:
       - 8080:8080
     volumes:
       - /etc/marathon:/etc/marathon
+    command: >
+      --master zk://{% for host in groups['tag_role_zookeeper'] %}{{ hostvars[host]['ansible_default_ipv4']['address'] }}:2181{% if not loop.last %},{% endif %}{% endfor %}/mesos
+      --zk zk://{% for host in groups['tag_role_zookeeper'] %}{{ hostvars[host]['ansible_default_ipv4']['address'] }}:2181{% if not loop.last %},{% endif %}{% endfor %}/marathon
+      --logging_level info
+      --hostname {{ tags.host }}
+      --plugin_dir /etc/marathon/plugins
+      --plugin_conf /etc/marathon/plugin-conf.json
+      --disable_ha
+      --disable_metrics
     environment:
-      MARATHON_MASTER: zk://{% for host in groups['tag_role_zookeeper'] %}{{ hostvars[host]['ec2_private_ip_address'] }}:2181{% if not loop.last %},{% endif %}{% endfor %}/mesos
-      MARATHON_ZK: zk://{% for host in groups['tag_role_zookeeper'] %}{{ hostvars[host]['ec2_private_ip_address'] }}:2181{% if not loop.last %},{% endif %}{% endfor %}/marathon
-      MARATHON_LOGGING_LEVEL: warn
-      MARATHON_HOSTNAME: {{ ec2_tag_host }}
-      MARATHON_OFFER_MATCHING_TIMEOUT: 5000
-      MARATHON_PLUGIN_DIR: /etc/marathon/plugins
-      MARATHON_PLUGIN_CONF: /etc/marathon/plugin-conf.json
       JAVA_OPTS: "-Xmx512m -Dfile.encoding=UTF-8"
       SERVICE_NAME: system/marathon
       SERVICE_CHECK_TCP: "true"

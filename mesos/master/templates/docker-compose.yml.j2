@@ -9,17 +9,18 @@ services:
       - /var/data/mesos-master/work:/mesos/work
     ports:
       - 5050:5050
+    command: >
+      --zk=zk://{% for host in groups['tag_role_zookeeper'] %}{{ hostvars[host]['ansible_default_ipv4']['address'] }}:2181{% if not loop.last %},{% endif %}{% endfor %}/mesos
+      --quorum={{ ((groups['tag_role_zookeeper'] | length / 2) | int) + 1 }}
+      --cluster=mesos
+      --registry=replicated_log
+      --advertise_ip={{ ansible_default_ipv4.address }}
+      --hostname={{ tags.host }}
+      --port=5050
+      --logging_level=WARNING
+      --log_dir=/mesos/logs
+      --work_dir=/mesos/work
+      --zk_session_timeout=60secs
     environment:
-      MESOS_ZK: zk://{% for host in groups['tag_role_zookeeper'] %}{{ hostvars[host]['ec2_private_ip_address'] }}:2181{% if not loop.last %},{% endif %}{% endfor %}/mesos
-      MESOS_QUORUM: 1
-      MESOS_CLUSTER: mesos
-      MESOS_REGISTRY: replicated_log
-      MESOS_ADVERTISE_IP: {{ ansible_default_ipv4.address }}
-      MESOS_PORT: 5050
-      MESOS_HOSTNAME: {{ ec2_tag_host }}
-      MESOS_LOGGING_LEVEL: WARNING
-      MESOS_LOG_DIR: /mesos/logs
-      MESOS_WORK_DIR: /mesos/work
-      MESOS_ZK_SESSION_TIMEOUT: 60secs
       SERVICE_NAME: system/mesos-master
       SERVICE_CHECK_TCP: "true"

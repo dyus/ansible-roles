@@ -25,3 +25,4 @@
       && sleep 60
       && docker run --rm -v /var/data/elasticsearch/data/backups:/data:ro -v /etc/{{ project_name }}/secrets/aws-backup-s3cfg:/root/.s3cfg
       samepagelabs/s3cmd sync --no-preserve /data/ s3://{{ s3_backet_for_backups }}/elasticsearch/
+  when: s3_backet_for_backups is defined and s3_backet_for_backups != ""
