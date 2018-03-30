@@ -17,7 +17,7 @@
 - name: remove ntpd to avoid conflict with chrony
   apt: name=ntp state=absent
 
-- locale_gen: name=en_US.UTF-8 state=present
+- locale_gen: name={{ locale }} state=present
 
 - name: Set default locales
   template: src=locale.j2 dest=/etc/default/locale
@@ -33,6 +33,7 @@
     insertafter: '^pool '
     line: 'server 169.254.169.123 prefer iburst'
   register: chrony_cfg
+  when: aws_region != ""
 
 - service: name=chrony state=restarted
   when: chrony_cfg.changed
@@ -65,3 +66,11 @@
 
 - name: Secret configs for access to S3 bucket with backups
   template: src=backup-s3cfg.j2 dest=/etc/{{ project_name }}/secrets/aws-backup-s3cfg
+  when: s3_backups_aws_id != ""
+
+- lineinfile: dest=/etc/resolvconf/resolv.conf.d/base regexp="^nameserver {{ internal_dns_server }}" line="nameserver {{ internal_dns_server }}"
+  register: resolvconf
+  when: internal_dns_server != ""
+
+- command: resolvconf -u
+  when: resolvconf.changed

@@ -6,9 +6,11 @@
 
 - name: Write gocd credentials
   copy: dest=/etc/serve/gocd_credentials content='{"login":"admin","password":"{{ gocd_api_password }}"}'
+  when: gocd_api_password is defined and gocd_api_password != ""
 
 - name: Save rsa key for access to git repository (download manifest.yml)
   copy: src="{{ git_rsa_key }}" dest=/etc/serve/git_rsa_key mode=0400
+  when: git_rsa_key is defined and git_rsa_key != ""
 
 - name: Copy docker-compose
   template: src=docker-compose.yml.j2 dest=/etc/compose/serve-server.yml
@@ -16,4 +18,9 @@
 
 - name: Run docker container
   command: docker-compose --file=/etc/compose/serve-server.yml up -d --force-recreate
+  when: compose.changed
+
+- name: Http routing
+  command: >
+    curl -XPUT -f -d '{"routes":[{"host":"serve-server.{{ inf_domain }}"}]}' http://127.0.0.1:8500/v1/kv/services/routes/system/serve-server
   when: compose.changed

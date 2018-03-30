@@ -1,0 +1,4 @@
+---
+s3_backet_for_backups: ""
+grafana_alerts_aws_id: ""
+grafana_alerts_aws_key: ""

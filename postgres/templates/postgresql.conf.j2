@@ -19,7 +19,7 @@ wal_keep_segments  = 32	    # in logfile segments, 16MB each; 0 disables
 log_min_messages           = warning		# values in order of decreasing detail:
 log_min_error_statement    = error	# values in order of decreasing detail:
 log_min_duration_statement = 1000	# -1 is disabled, 0 logs all statements
-log_line_prefix            = '%t [%p]: [%l-1] db=%d,user=%u '			# special values:
+log_line_prefix            = '%t [%p]: [%l-1] db=%d,user=%u,ip=%h '			# special values:
 log_lock_waits             = on			# log lock waits >= deadlock_timeout
 log_statement              = 'none'			# none, ddl, mod, all
 log_temp_files             = 0			# log temporary files equal or larger

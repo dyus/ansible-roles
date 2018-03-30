@@ -1,11 +1,11 @@
 ---
-- file: path=/var/data/webdav/upload state=directory
+- file: path={{ webdav_path }}/upload state=directory
 
 - name: Copy configs
-  template: src="{{ item }}.j2" dest=/var/data/webdav/{{ item }}
+  template: src="{{ item }}.j2" dest={{ webdav_path }}/{{ item }}
   with_items:
     - webdav.passwd
-    - nginx-server.conf
+    - nginx.conf
   register: confs
 
 - name: Copy docker-compose
@@ -21,5 +21,5 @@
     url: http://127.0.0.1:8500/v1/kv/services/routes/system/webdav
     method: PUT
     body_format: json
-    body: '{ "routes": [ { "host": "webdav.{{ env_domain }}" } ] }'
+    body: '{ "routes": [ { "host": "uploads.{{ env_domain }}" } ] }'
   when: compose.changed

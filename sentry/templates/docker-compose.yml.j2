@@ -14,7 +14,7 @@ services:
       - /var/data/sentry/postgres:/var/lib/postgresql/data:rw
 
   sentry:
-    image: sentry:8.20
+    image: sentry:8.22
     restart: always
     ports:
       - 9037:9000
@@ -29,12 +29,12 @@ services:
       SENTRY_POSTGRES_HOST: sentry-postgres
       SENTRY_DB_USER: sentry
       SENTRY_DB_PASSWORD: sentry
-      SENTRY_SECRET_KEY: asdfkg23jhasdfjhsdf
+      SENTRY_SECRET_KEY: UIkjfkgas0dfj1asd98723hgasd9801ekgsdlh123r23jhasdfjhsdf
       SERVICE_NAME: system/sentry
       SERVICE_CHECK_TCP: "true"
 
   sentry-celery-beat:
-    image: sentry:8.20
+    image: sentry:8.22
     restart: always
     depends_on:
       - sentry-redis
@@ -48,10 +48,10 @@ services:
       SENTRY_POSTGRES_HOST: sentry-postgres
       SENTRY_DB_USER: sentry
       SENTRY_DB_PASSWORD: sentry
-      SENTRY_SECRET_KEY: asdfkg23jhasdfjhsdf
+      SENTRY_SECRET_KEY: UIkjfkgas0dfj1asd98723hgasd9801ekgsdlh123r23jhasdfjhsdf
 
   sentry-celery-worker:
-    image: sentry:8.20
+    image: sentry:8.22
     restart: always
     depends_on:
       - sentry-redis
@@ -65,4 +65,4 @@ services:
       SENTRY_POSTGRES_HOST: sentry-postgres
       SENTRY_DB_USER: sentry
       SENTRY_DB_PASSWORD: sentry
-      SENTRY_SECRET_KEY: asdfkg23jhasdfjhsdf
+      SENTRY_SECRET_KEY: UIkjfkgas0dfj1asd98723hgasd9801ekgsdlh123r23jhasdfjhsdf

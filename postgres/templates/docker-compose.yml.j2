@@ -1,7 +1,7 @@
 version: '3'
 services:
   postgres:
-    image: {{ postgres_image | default('postgres:10.1') }}
+    image: {{ postgres_image | default('postgres:10.2') }}
     network_mode: host
     restart: always
     volumes:
@@ -16,6 +16,6 @@ services:
     ports:
       - 9187:9187
     environment:
-      DATA_SOURCE_NAME: "postgresql://postgres@localhost:5432/?sslmode=disable"
+      DATA_SOURCE_NAME: "postgresql://postgres:{{ postgres_default_password }}@localhost:5432/?sslmode=disable"
       SERVICE_NAME: "system/prometheus-postgres-dbexporter"
       SERVICE_CHECK_TCP: "true"
