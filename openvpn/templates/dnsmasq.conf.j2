@@ -9,7 +9,7 @@ bogus-priv
 
 # If you want dnsmasq to listen for DHCP and DNS requests only on
 # specified address (remember to include 127.0.0.1 if you use this.)
-listen-address=127.0.0.1,{{ inventory_hostname }},{{ openvpn_host }}
+listen-address=127.0.0.1,{{ ansible_default_ipv4.address }},{{ openvpn_host }}
 
 bind-interfaces
 
