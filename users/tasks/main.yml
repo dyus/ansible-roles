@@ -1,0 +1,28 @@
+---
+- name: Create dev users group
+  group: name=devs state=present
+
+- name: Allow passwordless sudo
+  copy: dest=/etc/sudoers.d/90-devs-users content="%devs ALL=(ALL) NOPASSWD:ALL" mode=0440
+
+- name: Create system dev users
+  user:
+    name: "{{ item.user }}"
+    group: devs
+    groups: admin,sudo
+    shell: /bin/bash
+    createhome: yes
+  when: item.ssh is defined
+  with_items: "{{ system_users }}"
+
+- name: Set ssh authorized key
+  authorized_key:
+    user: "{{ item.user }}"
+    state: present
+    key: "{{ item.ssh.public_key }}"
+  when: item.ssh is defined
+  with_items: "{{ system_users }}"
+
+- name: Cleanup deleted users
+  user: name="{{ item.user }}" remove=yes state=absent
+  with_items: "{{ deleted_users }}"

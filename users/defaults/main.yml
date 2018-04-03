@@ -1,0 +1,6 @@
+---
+system_users: []
+#  - { user: "username", sha512: "$6$WsX2BYLx1...", sha1: "4bjJ/FCny...", ssh: { public_key: "ssh-rsa AAAAB3NzaC1..." } }
+
+deleted_users: []
+#  - { user: "username" }
