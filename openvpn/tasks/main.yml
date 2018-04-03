@@ -29,12 +29,12 @@
     group: openvpn
     createhome: no
   with_items: "{{ system_users }}"
-  tags: [vpnusers]
+  tags: [newusers]
 
 - name: Cleanup deleted users
   user: name="{{ item.user }}" remove=yes state=absent
   with_items: "{{ deleted_users }}"
-  tags: [vpnusers]
+  tags: [newusers]
 
 - name: Set ip forwarding in the sysctl file and reload if necessary
   sysctl:
@@ -59,14 +59,14 @@
 - name: Cleanup deleted user's directory
   file: path="{{ openvpn_path }}/users/{{ item.user }}" state=absent
   with_items: "{{ deleted_users }}"
-  tags: [vpnusers]
+  tags: [newusers]
 
 - name: Create directories for clients
   file:
     path: "{{ openvpn_path }}/users/{{ item.user }}"
     state: directory
   with_items: "{{ system_users }}"
-  tags: [vpnusers]
+  tags: [newusers]
 
 - name: Generate RSA keys for the Clients
   command: openssl genrsa -out {{ item.user }}.key {{ openvpn_key_size }}
@@ -74,7 +74,7 @@
     chdir: "{{ openvpn_path }}/users/{{ item.user }}"
     creates: "{{ item.user }}.key"
   with_items: "{{ system_users }}"
-  tags: [vpnusers]
+  tags: [newusers]
 
 - name: Generate CA certificate
   command: openssl req -nodes -batch -new -x509 -key {{ openvpn_ca }}.key -out {{ openvpn_ca }}.crt
@@ -127,7 +127,7 @@
     chdir: "{{ openvpn_path }}/users/{{ item.user }}"
     creates: "{{ item.user }}.csr"
   with_items: "{{ system_users }}"
-  tags: [vpnusers]
+  tags: [newusers]
 
 - name: Generate certificates for the clients
   command: openssl x509 -CA {{ openvpn_ca }}.crt -CAkey {{ openvpn_ca }}.key -CAcreateserial -req -days {{ openvpn_days_valid }} -in {{ item.user }}.csr -out {{ item.user }}.crt
@@ -135,7 +135,7 @@
     creates: "{{ item.user }}.crt"
     chdir: "{{ openvpn_path }}/users/{{ item.user }}"
   with_items: "{{ system_users }}"
-  tags: [vpnusers]
+  tags: [newusers]
 
 - name: Generate the HMAC firewall key
   command: openvpn --genkey --secret {{ openvpn_hmac_firewall }}
@@ -147,7 +147,7 @@
   args:
     chdir: "{{ openvpn_path }}"
   register: openvpn_ca_contents
-  tags: [vpnusers]
+  tags: [newusers]
 
 - name: Register client certificate contents
   command: cat {{ item.user }}.crt
@@ -155,7 +155,7 @@
     chdir: "{{ openvpn_path }}/users/{{ item.user }}"
   with_items: "{{ system_users }}"
   register: openvpn_client_certificates
-  tags: [vpnusers]
+  tags: [newusers]
 
 - name: Register client key contents
   command: cat {{ item.user }}.key
@@ -163,7 +163,7 @@
     chdir: "{{ openvpn_path }}/users/{{ item.user }}"
   with_items: "{{ system_users }}"
   register: openvpn_client_keys
-  tags: [vpnusers]
+  tags: [newusers]
 
 - name: Create the client configs
   template:
@@ -174,7 +174,7 @@
     - "{{ system_users }}"
     - "{{ openvpn_client_certificates.results }}"
     - "{{ openvpn_client_keys.results }}"
-  tags: [vpnusers]
+  tags: [newusers]
 
 - name: Generate Diffie-Hellman parameters (this will take a while)
   command: openssl dhparam -out {{ openvpn_dhparam }} {{ openvpn_key_size }} -dsaparam
@@ -253,4 +253,4 @@
     dest: "{{ secrets_dir }}/openvpn-clients/{{ openvpn_server }}-{{ item.user }}.ovpn"
     flat: yes
   with_items: "{{ system_users }}"
-  tags: [vpnusers]
+  tags: [newusers]
