@@ -1,0 +1,30 @@
+---
+- name: Download gitlab-runner binary
+  get_url:
+    url: https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-amd64
+    dest: /usr/local/bin/gitlab-runner
+    mode: "+x"
+
+- name: Create workdir
+  file: path=/var/data/gitlab-runners/{{ runner_name }} state=directory
+
+- name: Install runner
+  command: gitlab-runner install --user=root --service=gitlab-{{ runner_name }} --working-directory=/var/data/gitlab-runners/{{ runner_name }}
+  args:
+    creates: /etc/systemd/system/gitlab-{{ runner_name }}.service
+  register: installed
+
+- name: Start runner
+  command: gitlab-runner start --service=gitlab-{{ runner_name }}
+  when: installed.changed
+
+- name: Register runner
+  command: >
+    gitlab-runner register
+      --non-interactive
+      --url="http://gitlab.{{ inf_domain }}/"
+      --registration-token="{{ gitlab_registration_token }}"
+      --name="gitlab-{{ runner_name }}"
+      --executor=shell
+      --locked=false
+  when: installed.changed and gitlab_registration_token != ""
