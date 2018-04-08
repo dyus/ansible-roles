@@ -51,5 +51,5 @@
     job: >
       curl -XPOST -k https://localhost:8154/go/api/backups -u "admin:{{ gocd_api_password }}" -H "Confirm: true" -H "Accept: application/vnd.go.cd.v1+json"
       && docker run --rm -v /var/data/go-server/godata/artifacts/serverBackups:/data:ro -v /etc/{{ project_name }}/secrets/aws-backup-s3cfg:/root/.s3cfg
-      samepagelabs/s3cmd sync --delete-removed /data/ s3://{{ s3_backet_for_backups }}/gocd/
+      samepagelabs/s3cmd sync /data/ s3://{{ s3_backet_for_backups }}/gocd/
       && find /var/data/go-server/godata/artifacts/serverBackups/* -maxdepth 0 -ctime +30 -type d -exec rm -rf {} +
