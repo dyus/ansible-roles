@@ -12,7 +12,7 @@ services:
       --master zk://{% for host in groups['tag_role_zookeeper'] %}{{ hostvars[host]['ansible_default_ipv4']['address'] }}:2181{% if not loop.last %},{% endif %}{% endfor %}/mesos
       --zk zk://{% for host in groups['tag_role_zookeeper'] %}{{ hostvars[host]['ansible_default_ipv4']['address'] }}:2181{% if not loop.last %},{% endif %}{% endfor %}/marathon
       --logging_level warn
-      --hostname {{ tags.host }}
+      --hostname {{ tags.Name }}
       --plugin_dir /etc/marathon/plugins
       --plugin_conf /etc/marathon/plugin-conf.json
       --disable_ha
