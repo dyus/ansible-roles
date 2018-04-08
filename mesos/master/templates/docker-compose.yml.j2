@@ -15,7 +15,7 @@ services:
       --cluster=mesos
       --registry=replicated_log
       --advertise_ip={{ ansible_default_ipv4.address }}
-      --hostname={{ tags.host }}
+      --hostname={{ tags.Name }}
       --port=5050
       --logging_level=WARNING
       --log_dir=/mesos/logs

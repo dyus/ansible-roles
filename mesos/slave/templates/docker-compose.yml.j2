@@ -19,7 +19,7 @@ services:
       --containerizers=docker
       --resources=ports(*):[11000-11999]
       --port=5051
-      --hostname={{ tags.host }}
+      --hostname={{ tags.Name }}
       --switch_user=0
       --logging_level=WARNING
       --log_dir=/mesos/logs
