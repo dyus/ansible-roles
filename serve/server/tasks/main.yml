@@ -8,6 +8,8 @@
   copy: dest=/etc/serve/gocd_credentials content='{"login":"admin","password":"{{ gocd_api_password }}"}'
   when: gocd_api_password is defined and gocd_api_password != ""
 
+- lineinfile: dest=/root/.ssh/config create=yes regexp="^\s*StrictHostKeyChecking no" line="StrictHostKeyChecking no" mode=0400
+
 - name: Save rsa key for access to git repository (download manifest.yml)
   copy: src="{{ git_rsa_key }}" dest=/etc/serve/git_rsa_key mode=0400
   when: git_rsa_key is defined and git_rsa_key != ""
