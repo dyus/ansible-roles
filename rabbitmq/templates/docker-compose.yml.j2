@@ -14,7 +14,7 @@ services:
       SERVICE_CHECK_TCP: "true"
 
   rabbitmq_prometheus_exporter:
-    image: kbudde/rabbitmq-exporter
+    image: kbudde/rabbitmq-exporter:v0.25.2
     network_mode: host
     restart: always
     ports:
@@ -22,6 +22,5 @@ services:
     environment:
       PUBLISH_PORT: "9207"
       SKIP_QUEUES: "^amq.gen"
-      RABBIT_CAPABILITIES: "no_sort,bert"
       SERVICE_NAME: "system/prometheus-rabbitmq-exporter"
       SERVICE_CHECK_TCP: "true"
