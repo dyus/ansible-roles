@@ -9,4 +9,4 @@ services:
       - /var/data/zookeeper/datalog:/datalog
     environment:
       ZOO_MY_ID: "{{ tags.seq }}"
-      ZOO_SERVERS: "{% for host in groups['tag_role_zookeeper'] %}server.{{ hostvars[host]['tags']['seq'] }}={{ hostvars[host]['ansible_default_ipv4']['address'] }}:2888:3888 {% endfor %}"
+      ZOO_SERVERS: "{% for host in groups['tag_role_zookeeper'] %}server.{{ hostvars[host]['tags']['seq'] }}={% if hostvars[host]['ansible_default_ipv4']['address'] == ansible_default_ipv4.address %}0.0.0.0{% else %}{{ hostvars[host]['ansible_default_ipv4']['address'] }}{% endif %}:2888:3888 {% endfor %}"

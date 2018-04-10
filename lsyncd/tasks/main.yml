@@ -6,10 +6,10 @@
   file: path=/etc/lsyncd state=directory
 
 - name: Copy private ssh key to all hosts
-  copy: src="{{ secrets_dir }}/lsyncd_ssh_key" dest="/etc/lsyncd/lsyncd_ssh_key" mode=0600
+  copy: src="{{ secrets_dir }}/lsyncd_ssh_key.{{ tags.env }}" dest="/etc/lsyncd/lsyncd_ssh_key" mode=0600
 
 - name: Add pub key to authorized keys
-  authorized_key: user={{ lsyncd_user }} key="{{ lookup('file', '{{ secrets_dir }}/lsyncd_ssh_key.pub') }}"
+  authorized_key: user={{ lsyncd_user }} key="{{ lookup('file', '{{ secrets_dir }}/lsyncd_ssh_key.{{ tags.env }}.pub') }}"
 
 - name: Add lsyncd config
   template: src=lsyncd.conf.lua.j2 dest=/etc/lsyncd/lsyncd.conf.lua

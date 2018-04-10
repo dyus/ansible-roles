@@ -29,3 +29,4 @@
       curl http://127.0.0.1:8500/v1/snapshot -o /var/data/consul/consul-snapshot.tgz
       && docker run --rm -v /var/data/consul:/data:ro -v /etc/{{ project_name }}/secrets/aws-backup-s3cfg:/root/.s3cfg
       samepagelabs/s3cmd put /data/consul-snapshot.tgz s3://{{ s3_backet_for_backups }}/consul/snapshot-`date +\%d`.tgz
+  when: s3_backet_for_backups is defined and s3_backet_for_backups != ""

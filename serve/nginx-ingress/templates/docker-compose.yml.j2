@@ -4,6 +4,7 @@ services:
     image: servehub/serve-nginx-ingress:{{ version }}
     network_mode: host
     restart: always
+    user: 0:0
     ports:
       - 80:80
     volumes:
