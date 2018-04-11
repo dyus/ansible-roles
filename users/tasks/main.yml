@@ -9,7 +9,7 @@
   user:
     name: "{{ item.user }}"
     group: devs
-    groups: admin,sudo
+    groups: docker,admin,sudo
     shell: /bin/bash
     createhome: yes
   when: item.ssh is defined
