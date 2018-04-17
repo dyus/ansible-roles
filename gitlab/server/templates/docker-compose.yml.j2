@@ -14,6 +14,7 @@ services:
     environment:
       GITLAB_OMNIBUS_CONFIG: |
         external_url 'http://gitlab.{{ inf_domain }}'
+        gitlab_rails['gitlab_shell_ssh_port'] = 9022
       SERVICE_80_NAME: system/gitlab
       SERVICE_22_IGNORE: "true"
       SERVICE_CHECK_TCP: "true"
