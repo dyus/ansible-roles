@@ -1,0 +1,3 @@
+---
+postfix_mail_domain: "example.com"
+postfix_smtp_users: "user:pwd"

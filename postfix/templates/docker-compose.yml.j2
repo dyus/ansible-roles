@@ -1,0 +1,11 @@
+version: '3'
+services:
+  postfix:
+    image: catatnight/postfix
+    restart: always
+    ports:
+      - '2525:25'
+    environment:
+      maildomain: "{{ postfix_mail_domain }}"
+      smtp_user: "{{ postfix_smtp_users }}"
+      SERVICE_NAME: system/postfix

@@ -31,7 +31,7 @@ http {
       auth_basic "Authentication required";
       auth_basic_user_file /var/www/webdav.passwd;
 
-      dav_methods PUT MKCOL;
+      dav_methods PUT DELETE MKCOL;
       dav_access  group:rw all:r;
 
       autoindex on;
