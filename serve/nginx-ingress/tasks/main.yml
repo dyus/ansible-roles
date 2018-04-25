@@ -1,4 +1,9 @@
 ---
+- file: path=/var/data/balancer{{ name_suffix }}/{{ item }} state=directory
+  with_items:
+    - cache
+    - include.d
+
 - name: Copy docker-compose
   template: src=docker-compose.yml.j2 dest=/etc/compose/serve-nginx-ingress{{ name_suffix }}.yml
   register: compose
