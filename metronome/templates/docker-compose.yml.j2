@@ -1,0 +1,14 @@
+version: '3'
+services:
+  metronome:
+    image: mesoshq/metronome:0.4.1
+    network_mode: host
+    restart: always
+    ports:
+      - 8082:8082
+    environment:
+      PORT0: 8082
+      metronome_mesos_master_url: "{{ hostvars[groups['tag_role_mesos_master'][0]]['ansible_default_ipv4']['address'] }}:5050"
+      metronome_zk_url: "zk://{% for host in groups['tag_role_zookeeper'] %}{{ hostvars[host]['ansible_default_ipv4']['address'] }}:2181{% if not loop.last %},{% endif %}{% endfor %}/metronome"
+      SERVICE_NAME: system/metronome
+      SERVICE_CHECK_TCP: "true"
