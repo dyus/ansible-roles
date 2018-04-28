@@ -12,6 +12,7 @@ services:
       - /var/data/balancer{{ name_suffix }}/include.d:/etc/nginx/include.d
     environment:
       NGINX_LISTEN_PORT: "{{ listen_port }}"
+      NGINX_SSL_PORT: "{{ listen_ssl_port }}"
       SERVE_ROUTE_FILTERS: "{{ route_filters }}"
       SERVICE_NAME: "system/serve-nginx-ingress{{ name_suffix }}"
       SERVICE_CHECK_TCP: "true"
