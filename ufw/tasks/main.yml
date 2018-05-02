@@ -1,0 +1,12 @@
+---
+- ufw: logging=off
+
+- name: allow SSH
+  ufw: rule=allow port=22
+
+- name: Allow all access from internal IPs
+  ufw: rule=allow from="{{ item }}"
+  with_items: "{{ ufw_allow_nets }}"
+
+- name: set firewall default policy
+  ufw: state=enabled policy=reject

@@ -24,6 +24,7 @@
 
 - name: Configure go_notify
   template: src=go_notify.conf.j2 dest=/var/data/go-server/home/go_notify.conf owner=1000 group=1000
+  when: gocd_slack_webhook_url != ""
   register: gonotify
 
 - name: Copy docker-compose
@@ -53,3 +54,4 @@
       && docker run --rm -v /var/data/go-server/godata/artifacts/serverBackups:/data:ro -v /etc/{{ project_name }}/secrets/aws-backup-s3cfg:/root/.s3cfg
       samepagelabs/s3cmd sync /data/ s3://{{ s3_backet_for_backups }}/gocd/
       && find /var/data/go-server/godata/artifacts/serverBackups/* -maxdepth 0 -ctime +30 -type d -exec rm -rf {} +
+  when: s3_backet_for_backups is defined and s3_backet_for_backups != ""
