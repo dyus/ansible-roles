@@ -1,0 +1,46 @@
+---
+- name: Copy docker-compose
+  template: src=docker-compose.yml.j2 dest=/etc/compose/stolon-proxy.yml
+  register: compose
+
+- name: Run docker container
+  command: docker-compose --file=/etc/compose/stolon-proxy.yml up -d --force-recreate
+  when: compose.changed
+
+- name: Create users and databases
+  run_once: true
+  block:
+    - name: Sleep after restarting
+      command: sleep 15
+      when: compose.changed
+
+    - name: Create users
+      shell: |
+        docker exec -e PGPASSWORD compose_stolon-proxy_1 \
+          psql --host 127.0.0.1 --port 25432 -U postgres -c "CREATE USER {{ item.user }} WITH password '{{ item.pass }}';"
+      environment:
+        PGPASSWORD: "{{ postgres_default_password }}"
+      with_items: "{{ postgres_databases }}"
+      register: res
+      failed_when: "res.stderr and 'already exists' not in res.stderr"
+      changed_when: "'already exists' not in res.stderr"
+
+    - name: Create databases
+      shell: |
+        docker exec -e PGPASSWORD compose_stolon-proxy_1 \
+          psql --host 127.0.0.1 --port 25432 -U postgres -c "CREATE DATABASE {{ item.db }} OWNER = {{ item.user }};"
+      environment:
+        PGPASSWORD: "{{ postgres_default_password }}"
+      with_items: "{{ postgres_databases }}"
+      when: item.db is defined
+      register: res
+      failed_when: "res.stderr and 'already exists' not in res.stderr"
+      changed_when: "'already exists' not in res.stderr"
+
+    - name: Create exstensions for databases
+      shell: |
+        docker exec -e PGPASSWORD compose_stolon-proxy_1 \
+          psql --host 127.0.0.1 --port 25432 -U postgres -d {{ item.db }} -c "CREATE EXTENSION IF NOT EXISTS {{ item.extension }};"
+      environment:
+        PGPASSWORD: "{{ postgres_default_password }}"
+      with_items: "{{ postgres_extensions }}"

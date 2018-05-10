@@ -1,0 +1,12 @@
+---
+# postgres md5 hash algorithm: echo -n $PASS$USER | md5
+
+postgres_databases: []
+#  - { db: example_db, user: example_user, pass: "md5432e52a6cc09ebc6214812cb8bafa117" }
+
+postgres_extensions: []
+#  - { db: example_db, extension: pg_trgm }
+#  - { db: example_db, extension: postgis }
+#  - { db: example_db, extension: postgis_topology }
+
+postgres_default_password: "testpass"

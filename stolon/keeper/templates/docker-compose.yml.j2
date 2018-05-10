@@ -1,0 +1,23 @@
+version: '3'
+services:
+  stolon-keeper:
+    image: servehub/stolon:0.10.0-pg10.2-v1
+    network_mode: host
+    restart: always
+    ports:
+      - '5432:5432'
+    volumes:
+      - /var/data/stolon/data:/data/stolon
+    command: |
+      stolon-keeper
+        --uid pg{{ tags.seq }}
+        --data-dir /data/stolon
+        --cluster-name {{ project_name }}-stolon
+        --store-backend consul
+        --pg-su-password {{ postgres_default_password }}
+        --pg-repl-username repluser
+        --pg-repl-password {{ postgres_default_password }}
+        --pg-listen-address {{ ansible_default_ipv4.address }}
+    environment:
+      SERVICE_NAME: "system/stolon-keeper"
+      SERVICE_CHECK_TCP: "true"

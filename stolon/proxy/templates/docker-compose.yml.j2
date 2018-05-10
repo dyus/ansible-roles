@@ -1,0 +1,17 @@
+version: '3'
+services:
+  stolon-proxy:
+    image: servehub/stolon:0.10.0-pg10.2-v1
+    network_mode: host
+    restart: always
+    ports:
+      - '25432:25432'
+    command: |
+      stolon-proxy
+        --cluster-name {{ project_name }}-stolon
+        --store-backend consul
+        --listen-address 127.0.0.1
+        --port 25432
+    environment:
+      SERVICE_NAME: "system/stolon-proxy"
+      SERVICE_CHECK_TCP: "true"
