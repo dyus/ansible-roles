@@ -9,4 +9,4 @@ postgres_extensions: []
 #  - { db: example_db, extension: postgis }
 #  - { db: example_db, extension: postgis_topology }
 
-postgres_default_password: "md5934d6b57577666ceb425bafc76670e1a"
+postgres_default_password: "testpass"
