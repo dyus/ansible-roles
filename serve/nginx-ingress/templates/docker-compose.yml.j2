@@ -9,8 +9,10 @@ services:
       - "{{ listen_port }}:{{ listen_port }}"
     volumes:
       - /var/data/balancer{{ name_suffix }}/cache:/cache/nginx
+      - /var/data/balancer{{ name_suffix }}/ssl:/etc/nginx/ssl
       - /var/data/balancer{{ name_suffix }}/include.d:/etc/nginx/include.d
     environment:
+      TIMEZONE: "{{ timezone }}"
       NGINX_LISTEN_PORT: "{{ listen_port }}"
       NGINX_SSL_PORT: "{{ listen_ssl_port }}"
       SERVE_ROUTE_FILTERS: "{{ route_filters }}"

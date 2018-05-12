@@ -3,6 +3,11 @@
   with_items:
     - cache
     - include.d
+    - ssl
+
+- name: Copy extra configs
+  template: src={{ item.src }} dest=/var/data/balancer{{ name_suffix }}/{{ item.dest }}
+  with_items: "{{ balancer_extra_configs }}"
 
 - name: Copy docker-compose
   template: src=docker-compose.yml.j2 dest=/etc/compose/serve-nginx-ingress{{ name_suffix }}.yml
