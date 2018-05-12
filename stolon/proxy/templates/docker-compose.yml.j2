@@ -10,8 +10,9 @@ services:
       stolon-proxy
         --cluster-name {{ project_name }}-stolon
         --store-backend consul
-        --listen-address 127.0.0.1
+        --listen-address 0.0.0.0
         --port 25432
     environment:
+      PGPASSWORD: "{{ postgres_default_password }}"
       SERVICE_NAME: "system/stolon-proxy"
       SERVICE_CHECK_TCP: "true"
