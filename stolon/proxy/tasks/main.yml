@@ -11,7 +11,7 @@
   run_once: true
   block:
     - name: Sleep after restarting
-      command: sleep 15
+      command: sleep 30
       when: compose.changed
 
     - name: Create users

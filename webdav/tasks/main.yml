@@ -16,10 +16,7 @@
   command: docker-compose --file=/etc/compose/webdav.yml up -d --force-recreate
   when: compose.changed or confs.changed
 
-- name: Save http routing
-  uri:
-    url: http://127.0.0.1:8500/v1/kv/services/routes/system/webdav
-    method: PUT
-    body_format: json
-    body: '{ "routes": [ { "host": "uploads.{{ env_domain }}" } ] }'
+- name: Http routing
+  command: >
+    curl -XPUT -f -d '{"routes":[{"host":"uploads.{{ env_domain }}"}]}' http://127.0.0.1:8500/v1/kv/services/routes/system/webdav
   when: compose.changed

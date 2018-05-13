@@ -4,7 +4,7 @@ services:
     image: consul:1.0.7
     network_mode: host
     restart: always
-    command: "agent -server -ui -datacenter={{ tags.env }} -advertise={{ ansible_default_ipv4.address }} -client=0.0.0.0 {% for host in groups['tag_role_consul_server'] %}-retry-join={{ hostvars[host]['ansible_default_ipv4']['address'] }}{% endfor %} -bootstrap-expect={{ groups['tag_role_consul_server'] | length }}"
+    command: "agent -server -ui -datacenter={{ tags.env }} -advertise={{ ansible_default_ipv4.address }} -client=0.0.0.0 {% for host in groups['tag_role_consul_server'] %}-retry-join={{ hostvars[host]['ansible_default_ipv4']['address'] }} {% endfor %} -bootstrap-expect={{ groups['tag_role_consul_server'] | length }}"
     ports:
       - 8500:8500
     volumes:

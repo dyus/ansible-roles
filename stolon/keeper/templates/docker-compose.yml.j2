@@ -10,7 +10,7 @@ services:
       - /var/data/stolon/data:/data/stolon
     command: |
       stolon-keeper
-        --uid pg{{ tags.seq }}
+        --uid {{ tags.Name | regex_replace('\W', '_') }}
         --data-dir /data/stolon
         --cluster-name {{ project_name }}-stolon
         --store-backend consul
@@ -18,6 +18,7 @@ services:
         --pg-repl-username repluser
         --pg-repl-password {{ postgres_default_password }}
         --pg-listen-address {{ ansible_default_ipv4.address }}
+        --log-level warn
     environment:
       SERVICE_NAME: "system/stolon-keeper"
       SERVICE_CHECK_TCP: "true"

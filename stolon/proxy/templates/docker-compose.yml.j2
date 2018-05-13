@@ -12,6 +12,7 @@ services:
         --store-backend consul
         --listen-address 0.0.0.0
         --port 25432
+        --log-level warn
     environment:
       PGPASSWORD: "{{ postgres_default_password }}"
       SERVICE_NAME: "system/stolon-proxy"

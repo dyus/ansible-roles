@@ -9,5 +9,5 @@
 
 - name: Routing for localshop
   command: >
-    curl -XPUT -f -d '{"routes":[{"host":"localshop.{{ inf_domain }}"}]}' http://127.0.0.1:8500/v1/kv/services/routes/system/localshop
+    curl -XPUT -f -d '{"routes":[{"host":"localshop.{{ inf_domain }}" {{ inf_domain_ssl_routes }} }]}' http://127.0.0.1:8500/v1/kv/services/routes/system/localshop
   when: compose.changed

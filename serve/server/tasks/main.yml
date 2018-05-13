@@ -24,5 +24,5 @@
 
 - name: Http routing
   command: >
-    curl -XPUT -f -d '{"routes":[{"host":"serve-server.{{ inf_domain }}"}]}' http://127.0.0.1:8500/v1/kv/services/routes/system/serve-server
+    curl -XPUT -f -d '{"routes":[{"host":"serve-server.{{ inf_domain }}" {{ inf_domain_ssl_routes }} }]}' http://127.0.0.1:8500/v1/kv/services/routes/system/serve-server
   when: compose.changed

@@ -9,5 +9,5 @@
 
 - name: Http routing
   command: >
-    curl -XPUT -f -d '{"routes":[{"host":"gitlab.{{ inf_domain }}"}]}' http://127.0.0.1:8500/v1/kv/services/routes/system/gitlab
+    curl -XPUT -f -d '{"routes":[{"host":"gitlab.{{ inf_domain }}" {{ inf_domain_ssl_routes }} }]}' http://127.0.0.1:8500/v1/kv/services/routes/system/gitlab
   when: compose.changed
