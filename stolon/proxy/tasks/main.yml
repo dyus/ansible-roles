@@ -38,3 +38,7 @@
         docker exec compose_stolon-proxy_1 \
           psql --host 127.0.0.1 --port 25432 -U postgres -d {{ item.db }} -c "CREATE EXTENSION IF NOT EXISTS {{ item.extension }};"
       with_items: "{{ postgres_extensions }}"
+
+- name: Add SSH keys for deploy.copy-db plugin to authorized
+  authorized_key: user=root key="{{ lookup('file', '{{ secrets_dir }}/copy_db_ssh_key.pub') }}" state=present
+  when: tags.Name == copy_db_access_allowed_for
