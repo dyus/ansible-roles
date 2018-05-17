@@ -12,3 +12,5 @@ postgres_extensions: []
 postgres_default_password: "testpass"
 
 copy_db_access_allowed_for: "---"
+
+stolon_backup_host: "---"

@@ -234,9 +234,11 @@
     dest: /etc/dnsmasq.conf
     backup: yes
   register: dnsmasq_conf_changed
+  tags: [dns]
 
 - service: name=dnsmasq state=restarted
   when: dnsmasq_conf_changed.changed
+  tags: [dns]
 
 - name: Update the "rc.local" file
   lineinfile:

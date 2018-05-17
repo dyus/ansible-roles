@@ -6,6 +6,8 @@ services:
     restart: always
     ports:
       - '25432:25432'
+    volumes:
+      - /var/data/backups/stolon:/data/backups
     command: |
       stolon-proxy
         --cluster-name {{ project_name }}-stolon
