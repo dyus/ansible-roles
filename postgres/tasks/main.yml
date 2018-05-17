@@ -45,7 +45,7 @@
     cron_file: "postgres-backup"
     user: root
     job: >
-      docker exec compose_postgres_1 /bin/bash -c "pg_dumpall -U postgres | gzip > /var/lib/postgresql/data/backup-all.sql.gz"
+      docker exec compose_postgres_1 /bin/bash -c "pg_dumpall -U postgres --clean | gzip > /var/lib/postgresql/data/backup-all.sql.gz"
       && docker run --rm -v /var/data/postgresql/data:/data:ro -v /etc/{{ project_name }}/secrets/aws-backup-s3cfg:/root/.s3cfg
       samepagelabs/s3cmd put /data/backup-all.sql.gz s3://{{ s3_backet_for_backups }}/db/postgres-all.`date +\%a`.sql.gz
   when: s3_backet_for_backups is defined and s3_backet_for_backups != ""

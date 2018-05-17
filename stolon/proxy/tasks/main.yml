@@ -53,6 +53,6 @@
         cron_file: "stolon-backup"
         user: root
         job: |
-          docker exec compose_stolon-proxy_1 /bin/bash -c "pg_dumpall --host 127.0.0.1 --port 25432 -U postgres | gzip > /data/backups/backup-all.`date +\%d`.sql.gz"
+          docker exec compose_stolon-proxy_1 /bin/bash -c "pg_dumpall --host 127.0.0.1 --port 25432 -U postgres --clean | gzip > /data/backups/backup-all.`date +\%d`.sql.gz"
 
   when: tags.Name == stolon_backup_host
