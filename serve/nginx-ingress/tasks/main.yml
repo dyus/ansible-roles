@@ -3,6 +3,7 @@
   with_items:
     - cache
     - include.d
+    - conf.d
     - ssl
 
 - name: Copy extra configs

@@ -10,6 +10,7 @@ services:
     volumes:
       - /var/data/balancer{{ name_suffix }}/cache:/cache/nginx
       - /var/data/balancer{{ name_suffix }}/ssl:/etc/nginx/ssl
+      - /var/data/balancer{{ name_suffix }}/conf.d:/etc/nginx/conf.d
       - /var/data/balancer{{ name_suffix }}/include.d:/etc/nginx/include.d
     environment:
       TIMEZONE: "{{ timezone }}"
