@@ -43,16 +43,26 @@
   authorized_key: user=root key="{{ lookup('file', '{{ secrets_dir }}/copy_db_ssh_key.pub') }}" state=present
   when: tags.Name == copy_db_access_allowed_for
 
-- block:
-    - file: path=/var/data/backups/stolon state=directory owner=999 group=999
+- file: path=/var/data/backups/stolon state=directory owner=999 group=999
 
-    - cron:
-        name: "Backup all databases"
-        minute: 10
-        hour: 2
-        cron_file: "stolon-backup"
-        user: root
-        job: |
-          docker exec compose_stolon-proxy_1 /bin/bash -c "pg_dumpall --host 127.0.0.1 --port 25432 -U postgres --clean | gzip > /data/backups/backup-all.`date +\%d`.sql.gz"
-
+- cron:
+    name: "Backup all databases"
+    minute: 10
+    hour: 2
+    cron_file: "stolon-backup"
+    user: root
+    job: |
+      docker exec compose_stolon-proxy_1 /bin/bash -c "pg_dumpall --host 127.0.0.1 --port 25432 -U postgres --clean | gzip > /data/backups/backup-all.`date +\%d`.sql.gz"
   when: tags.Name == stolon_backup_host
+
+- cron:
+    name: "Backup all databases to S3"
+    minute: 20
+    hour: 2
+    cron_file: "stolon-backup-s3"
+    user: root
+    job: >
+      docker exec compose_stolon-proxy_1 /bin/bash -c "pg_dumpall --host 127.0.0.1 --port 25432 -U postgres --clean | gzip > /data/backups/backup-all.sql.gz"
+      && docker run --rm -v /var/data/backups/stolon:/data:ro -v /etc/{{ project_name }}/secrets/aws-backup-s3cfg:/root/.s3cfg
+      samepagelabs/s3cmd put /data/backup-all.sql.gz s3://{{ s3_backet_for_backups }}/db/postgres-all.`date +\%d`.sql.gz
+  when: s3_backet_for_backups is defined and s3_backet_for_backups != ""
