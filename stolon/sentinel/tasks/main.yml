@@ -1,0 +1,49 @@
+---
+- name: Check if stolon cluster already exists
+  uri:
+    url: "http://127.0.0.1:8500/v1/kv/stolon/cluster/{{ project_name }}-stolon/clusterdata"
+    method: GET
+    status_code: "200,404"
+  register: cluster_exists
+
+- name: Copy docker-compose
+  template: src=docker-compose.yml.j2 dest=/etc/compose/stolon-sentinel.yml
+  register: compose
+
+- name: Run docker container
+  command: docker-compose --file=/etc/compose/stolon-sentinel.yml up -d --force-recreate
+  when: compose.changed
+
+- name: Cluster specs
+  copy:
+    dest: /var/data/stolon/cluster-spec.json
+    content: |
+      {
+        "pgParameters": {
+          "max_connections": "1024",
+          "shared_buffers": "1024MB",
+          "timezone": "localtime",
+          "log_min_messages": "warning",
+          "log_min_error_statement": "error",
+          "log_min_duration_statement": "1000",
+          "log_line_prefix": "%t [%p]: [%l-1] db=%d,user=%u,ip=%h ",
+          "log_lock_waits": "on",
+          "log_statement": "ddl",
+          "log_temp_files": "0",
+          "log_timezone": "localtime"
+        }
+      }
+  register: cluster_spec
+
+- name: Init stolon cluster if not exists
+  shell: |
+    docker exec compose_stolon-sentinel_1 /bin/bash -c \
+      'stolonctl --cluster-name {{ project_name }}-stolon --store-backend consul init --yes'
+  when: cluster_exists.status == 404
+
+- name: Update cluster spec
+  shell: |
+    docker exec compose_stolon-sentinel_1 /bin/bash -c \
+      'stolonctl --cluster-name {{ project_name }}-stolon --store-backend consul update --patch --file /data/stolon/cluster-spec.json'
+  when: cluster_exists.status == 404 or cluster_spec.changed
+  run_once: true

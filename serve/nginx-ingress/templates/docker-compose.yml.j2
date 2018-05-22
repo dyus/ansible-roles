@@ -1,14 +1,21 @@
 version: '3'
 services:
-  serve-nginx-ingress:
+  serve-nginx-ingress{{ name_suffix }}:
     image: servehub/serve-nginx-ingress:{{ version }}
     network_mode: host
     restart: always
     user: 0:0
     ports:
-      - 80:80
+      - "{{ listen_port }}:{{ listen_port }}"
     volumes:
-      - /var/data/balancer/cache:/cache/nginx
+      - /var/data/balancer{{ name_suffix }}/cache:/cache/nginx
+      - /var/data/balancer{{ name_suffix }}/ssl:/etc/nginx/ssl
+      - /var/data/balancer{{ name_suffix }}/conf.d:/etc/nginx/conf.d
+      - /var/data/balancer{{ name_suffix }}/include.d:/etc/nginx/include.d
     environment:
-      SERVICE_NAME: system/serve-nginx-ingress
+      TIMEZONE: "{{ timezone }}"
+      NGINX_LISTEN_PORT: "{{ listen_port }}"
+      NGINX_SSL_PORT: "{{ listen_ssl_port }}"
+      SERVE_ROUTE_FILTERS: "{{ route_filters }}"
+      SERVICE_NAME: "system/serve-nginx-ingress{{ name_suffix }}"
       SERVICE_CHECK_TCP: "true"

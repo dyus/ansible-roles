@@ -1,8 +1,19 @@
 ---
+- file: path=/var/data/balancer{{ name_suffix }}/{{ item }} state=directory
+  with_items:
+    - cache
+    - include.d
+    - conf.d
+    - ssl
+
+- name: Copy extra configs
+  template: src={{ item.src }} dest=/var/data/balancer{{ name_suffix }}/{{ item.dest }}
+  with_items: "{{ balancer_extra_configs }}"
+
 - name: Copy docker-compose
-  template: src=docker-compose.yml.j2 dest=/etc/compose/serve-nginx-ingress.yml
+  template: src=docker-compose.yml.j2 dest=/etc/compose/serve-nginx-ingress{{ name_suffix }}.yml
   register: compose
 
 - name: Run docker container
-  command: docker-compose --file=/etc/compose/serve-nginx-ingress.yml up -d --force-recreate
+  command: docker-compose --file=/etc/compose/serve-nginx-ingress{{ name_suffix }}.yml up -d --force-recreate
   when: compose.changed

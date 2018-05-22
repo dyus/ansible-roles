@@ -1,3 +1,4 @@
 ---
 deleted_users: []
 version: 18.2.0
+gocd_slack_webhook_url: ""

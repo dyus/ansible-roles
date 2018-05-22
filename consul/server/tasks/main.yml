@@ -11,12 +11,9 @@
   pause: seconds=20
   when: compose.changed
 
-- name: Save http routing
-  uri:
-    url: http://127.0.0.1:8500/v1/kv/services/routes/system/consul-ui
-    method: PUT
-    body_format: json
-    body: '{ "routes": [ { "host": "consul.{{ env_domain }}" } ] }'
+- name: Http routing
+  command: >
+    curl -XPUT -f -d '{"routes":[{"host":"consul.{{ env_domain }}"}]}' http://127.0.0.1:8500/v1/kv/services/routes/system/consul-ui
   when: compose.changed
 
 - cron:

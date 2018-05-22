@@ -1,2 +1,8 @@
 ---
-version: 1.1.1
+version: 1.1.17
+listen_port: 80
+listen_ssl_port: 443
+route_filters: ""
+name_suffix: ""
+timezone: "UTC"
+balancer_extra_configs: []

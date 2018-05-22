@@ -1,0 +1,21 @@
+version: '3'
+services:
+  stolon-proxy:
+    image: servehub/stolon:0.10.0-pg10.2-v1.3
+    network_mode: host
+    restart: always
+    ports:
+      - '25432:25432'
+    volumes:
+      - /var/data/backups/stolon:/data/backups
+    command: |
+      stolon-proxy
+        --cluster-name {{ project_name }}-stolon
+        --store-backend consul
+        --listen-address 0.0.0.0
+        --port 25432
+        --log-level warn
+    environment:
+      PGPASSWORD: "{{ postgres_default_password }}"
+      SERVICE_NAME: "system/stolon-proxy"
+      SERVICE_CHECK_TCP: "true"

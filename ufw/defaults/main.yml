@@ -1,0 +1,3 @@
+---
+ufw_allow_nets: []
+ufw_public_ports: []

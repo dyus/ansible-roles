@@ -10,3 +10,7 @@ postgres_extensions: []
 #  - { db: example_db, extension: postgis_topology }
 
 postgres_default_password: "testpass"
+
+copy_db_access_allowed_for: "---"
+
+stolon_backup_host: "---"

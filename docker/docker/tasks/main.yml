@@ -6,7 +6,7 @@
   apt_repository: repo="deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} edge"
 
 - name: Install Docker
-  apt: name="docker-ce=17.12.0~ce-0~ubuntu" update_cache=yes cache_valid_time=3600
+  apt: name="docker-ce=18.03.1~ce-0~ubuntu" update_cache=yes cache_valid_time=3600
 
 - name: Check docker-compose version
   shell: docker-compose --version

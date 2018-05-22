@@ -1,0 +1,13 @@
+version: '3'
+services:
+  stolon-sentinel:
+    image: servehub/stolon:0.10.0-pg10.2-v1.3
+    network_mode: host
+    restart: always
+    volumes:
+      - /var/data/stolon:/data/stolon:ro
+    command: |
+      stolon-sentinel
+        --cluster-name {{ project_name }}-stolon
+        --store-backend consul
+        --log-level warn

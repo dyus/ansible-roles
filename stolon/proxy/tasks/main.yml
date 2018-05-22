@@ -1,0 +1,71 @@
+---
+- name: Copy docker-compose
+  template: src=docker-compose.yml.j2 dest=/etc/compose/stolon-proxy.yml
+  register: compose
+
+- name: Run docker container
+  command: docker-compose --file=/etc/compose/stolon-proxy.yml up -d --force-recreate
+  when: compose.changed
+
+- name: Create users and databases
+  run_once: true
+  block:
+    - name: Sleep after restarting
+      command: sleep 30
+      when: compose.changed
+
+    - name: Create users
+      shell: |
+        docker exec compose_stolon-proxy_1 \
+          psql --host 127.0.0.1 --port 25432 -U postgres -c "CREATE USER {{ item.user }} WITH password '{{ item.pass }}';"
+      with_items: "{{ postgres_databases }}"
+      register: res
+      failed_when: "res.stderr and 'already exists' not in res.stderr"
+      changed_when: "'already exists' not in res.stderr"
+
+    - name: Create databases
+      shell: |
+        docker exec compose_stolon-proxy_1 \
+          psql --host 127.0.0.1 --port 25432 -U postgres -c "CREATE DATABASE {{ item.db }} OWNER = {{ item.user }};"
+      with_items: "{{ postgres_databases }}"
+      when: item.db is defined
+      register: res
+      failed_when: "res.stderr and 'already exists' not in res.stderr"
+      changed_when: "'already exists' not in res.stderr"
+
+    - name: Create exstensions for databases
+      shell: |
+        docker exec compose_stolon-proxy_1 \
+          psql --host 127.0.0.1 --port 25432 -U postgres -d {{ item.db }} -c "CREATE EXTENSION IF NOT EXISTS {{ item.extension }};"
+      with_items: "{{ postgres_extensions }}"
+
+- name: Add SSH keys for deploy.copy-db plugin to authorized
+  authorized_key: user=root key="{{ lookup('file', '{{ secrets_dir }}/copy_db_ssh_key.pub') }}" state=present
+  when: tags.Name == copy_db_access_allowed_for
+
+- block:
+    - file: path=/var/data/backups/stolon state=directory owner=999 group=999
+
+    - cron:
+        name: "Backup all databases"
+        minute: 10
+        hour: 2
+        cron_file: "stolon-backup"
+        user: root
+        job: |
+          docker exec compose_stolon-proxy_1 /bin/bash -c "pg_dumpall --host 127.0.0.1 --port 25432 -U postgres --clean | gzip > /data/backups/backup-all.`date +\%d`.sql.gz"
+      when: s3_backet_for_backups is not defined or s3_backet_for_backups == ""
+
+    - cron:
+        name: "Backup all databases to S3"
+        minute: 20
+        hour: 2
+        cron_file: "stolon-backup-s3"
+        user: root
+        job: >
+          docker exec compose_stolon-proxy_1 /bin/bash -c "pg_dumpall --host 127.0.0.1 --port 25432 -U postgres --clean | gzip > /data/backups/backup-all.sql.gz"
+          && docker run --rm -v /var/data/backups/stolon:/data:ro -v /etc/{{ project_name }}/secrets/aws-backup-s3cfg:/root/.s3cfg
+          samepagelabs/s3cmd put /data/backup-all.sql.gz s3://{{ s3_backet_for_backups }}/db/postgres-all.`date +\%d`.sql.gz
+      when: s3_backet_for_backups is defined and s3_backet_for_backups != ""
+
+  when: tags.Name == stolon_backup_host
