@@ -1,7 +1,10 @@
 ---
+- name: Install ufw
+  apt: package=ufw state=present
+
 - ufw: logging=off
 
-- name: allow SSH
+- name: Allow SSH
   ufw: rule=allow port=22
 
 - name: Allow all access from internal IPs
