@@ -1,5 +1,5 @@
 ---
-version: 1.1.17
+version: 1.1.18
 listen_port: 80
 listen_ssl_port: 443
 route_filters: ""
