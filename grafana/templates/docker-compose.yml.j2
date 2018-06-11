@@ -16,9 +16,9 @@ services:
       GF_AUTH_ANONYMOUS_ORG_ROLE: Editor
 {% if grafana_alerts_aws_id != "" %}
       GF_EXTERNAL_IMAGE_STORAGE_PROVIDER: s3
-      GF_EXTERNAL_IMAGE_STORAGE_S3_BUCKET_URL: https://{{ project_name }}-grafana-alerts.s3-{{ aws_region }}.amazonaws.com
-      GF_EXTERNAL_IMAGE_STORAGE_S3_ACCESS_KEY: {{ grafana_alerts_aws_id }}
-      GF_EXTERNAL_IMAGE_STORAGE_S3_SECRET_KEY: {{ grafana_alerts_aws_key }}
+      GF_EXTERNAL_IMAGE_STORAGE_S3_BUCKET_URL: "{{ grafana_alerts_s3_bucket }}"
+      GF_EXTERNAL_IMAGE_STORAGE_S3_ACCESS_KEY: "{{ grafana_alerts_aws_id }}"
+      GF_EXTERNAL_IMAGE_STORAGE_S3_SECRET_KEY: "{{ grafana_alerts_aws_key }}"
 {% endif %}
       SERVICE_NAME: system/grafana
       SERVICE_CHECK_TCP: "true"

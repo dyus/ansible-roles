@@ -17,7 +17,8 @@ services:
     command: >
       --master=zk://{% for host in groups['tag_role_zookeeper'] %}{{ hostvars[host]['ansible_default_ipv4']['address'] }}:2181{% if not loop.last %},{% endif %}{% endfor %}/mesos
       --containerizers=docker
-      --resources=ports(*):[11000-11999]
+      --resources="ports(*):[11000-11999];mem:{{ ansible_memtotal_mb }}"
+      --reconfiguration_policy=additive
       --port=5051
       --hostname={{ tags.Name }}
       --switch_user=0
