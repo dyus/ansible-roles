@@ -1,0 +1,16 @@
+version: '3'
+services:
+  chronos:
+    image: mesosphere/chronos:v3.0.2
+    network_mode: host
+    restart: always
+    ports:
+      - 8180:8180
+    command: >
+      --zk_hosts {% for host in groups['tag_role_zookeeper'] %}{{ hostvars[host]['ansible_default_ipv4']['address'] }}:2181{% if not loop.last %},{% endif %}{% endfor %}
+      --master zk://{% for host in groups['tag_role_zookeeper'] %}{{ hostvars[host]['ansible_default_ipv4']['address'] }}:2181{% if not loop.last %},{% endif %}{% endfor %}/mesos
+    environment:
+      PORT0: 8180
+      PORT1: 8181
+      SERVICE_NAME: system/chronos
+      SERVICE_CHECK_TCP: "true"

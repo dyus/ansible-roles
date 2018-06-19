@@ -1,0 +1,13 @@
+---
+- name: Copy docker-compose
+  template: src=docker-compose.yml.j2 dest=/etc/compose/chronos.yml
+  register: compose
+
+- name: Run docker container
+  command: docker-compose --file=/etc/compose/chronos.yml up -d --force-recreate
+  when: compose.changed
+
+- name: Http routing
+  command: >
+    curl -XPUT -f -d '{"routes":[{"host":"chronos.{{ env_domain }}"}]}' http://127.0.0.1:8500/v1/kv/services/routes/system/chronos
+  when: compose.changed
