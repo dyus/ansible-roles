@@ -1,4 +1,6 @@
 ---
+aws_region: ""
 s3_backet_for_backups: ""
 grafana_alerts_aws_id: ""
 grafana_alerts_aws_key: ""
+grafana_alerts_s3_bucket: "https://{{ project_name }}-grafana-alerts.s3-{{ aws_region }}.amazonaws.com"
