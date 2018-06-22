@@ -1,0 +1,18 @@
+version: '3'
+services:
+  chronos:
+    image: titpetric/netdata
+    network_mode: host
+    restart: always
+    security_opt:
+      - apparmor:unconfined
+    cap_add:
+      - SYS_PTRACE
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+    environment:
+{% if monitoring_slack_webhook_url != "" %}
+      SLACK_WEBHOOK_URL: "{{ monitoring_slack_webhook_url }}"
+      SLACK_CHANNEL: "{{ monitoring_slack_channel }}"
+{% endif %}

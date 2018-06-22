@@ -16,6 +16,7 @@ services:
       - '--storage.tsdb.retention=7d'
       - '--web.console.libraries=/usr/share/prometheus/console_libraries'
       - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--log.level=error'
     environment:
       SERVICE_NAME: system/prometheus
       SERVICE_CHECK_TCP: "true"
