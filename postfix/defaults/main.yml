@@ -1,3 +1,4 @@
 ---
 postfix_mail_domain: "example.com"
 postfix_smtp_users: "user:pwd"
+postfix_message_size_limit: 61440000

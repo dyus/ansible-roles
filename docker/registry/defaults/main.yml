@@ -1,0 +1,3 @@
+---
+registry_cleanup_max_days: 30
+registry_cleanup_latest: 3

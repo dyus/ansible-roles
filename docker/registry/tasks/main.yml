@@ -18,5 +18,5 @@
     hour: 5
     user: root
     job: >
-      docker run --rm -ti lhanxetus/deckschrubber -registry http://{{ docker_registry }} -max_repos 256 -month 2 -latest 3
+      docker run --rm -ti lhanxetus/deckschrubber -registry http://{{ docker_registry }} -max_repos 256 -day {{ registry_cleanup_max_days }} -latest {{ registry_cleanup_latest }}
       && docker exec compose_docker-registry_1 bin/registry garbage-collect /etc/docker/registry/config.yml

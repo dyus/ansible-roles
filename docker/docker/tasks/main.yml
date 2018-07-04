@@ -50,7 +50,7 @@
 - cron:
     name: "Remove unused docker images"
     minute: 0
-    hour: 3
+    hour: "{{ docker_cleanup_cron_hours }}"
     cron_file: "docker-cleanup"
     user: root
     job: "docker system prune --all --force"

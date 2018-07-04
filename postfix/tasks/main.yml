@@ -1,4 +1,6 @@
 ---
+- file: path=/var/data/postfix state=directory owner=102 group=106
+
 - name: Copy docker-compose
   template: src=docker-compose.yml.j2 dest=/etc/compose/postfix.yml
   register: compose
