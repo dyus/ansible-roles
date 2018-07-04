@@ -17,22 +17,41 @@
   when: compose.changed
 
 - set_fact:
-    curator_cmd: >
+    curator_close_cmd: >
+      docker run --rm --net=host --entrypoint=curator_cli bobrik/curator:4.2.6 close
+        --ignore_empty_list
+        --filter_list '
+          [
+            { "filtertype": "pattern", "kind": "prefix", "value": "journalbeat-" },
+            { "filtertype": "age", "source": "name", "direction": "older", "timestring": "\%Y.\%m.\%d", "unit": "days", "unit_count": {{ curator_close_index_after_days }} }
+          ]' 2>&1 | logger -t curator
+
+    curator_delete_cmd: >
       docker run --rm --net=host --entrypoint=curator_cli bobrik/curator:4.2.6 delete_indices
         --ignore_empty_list
         --filter_list '
           [
             { "filtertype": "pattern", "kind": "prefix", "value": "journalbeat-" },
-            { "filtertype": "age", "source": "name", "direction": "older", "timestring": "\%Y.\%m.\%d", "unit": "days", "unit_count": 7 }
+            { "filtertype": "age", "source": "name", "direction": "older", "timestring": "\%Y.\%m.\%d", "unit": "days", "unit_count": {{ curator_delete_index_after_days }} }
           ]' 2>&1 | logger -t curator
+
+- file: path=/etc/cron.d/curator state=absent
+
+- cron:
+    name: "Close old elasticsearch log indices"
+    minute: 0
+    hour: 1
+    cron_file: "curator-close"
+    user: root
+    job: "{{ curator_close_cmd | regex_replace('\\s+', ' ') }}"
 
 - cron:
     name: "Remove old elasticsearch log indices"
     minute: 0
-    hour: 1
-    cron_file: "curator"
+    hour: 2
+    cron_file: "curator-delete"
     user: root
-    job: "{{ curator_cmd | regex_replace('\\s+', ' ') }}"
+    job: "{{ curator_delete_cmd | regex_replace('\\s+', ' ') }}"
 
 - name: Install elastic plugins
   shell: 'sleep 10 && docker exec compose_elasticsearch_1 bin/plugin install lmenezes/elasticsearch-kopf/master'
