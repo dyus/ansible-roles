@@ -1,0 +1,21 @@
+version: '2'
+services:
+  ftpd_server:
+    image: stilliard/pure-ftpd:hardened
+    network_mode: host
+    restart: always
+    ports:
+      - "21:21"
+      - "30000-30009:30000-30009"
+    volumes:
+      - "/var/data/ftp/ftpusers:/home/ftpusers"
+      - "/var/data/ftp/passwd:/etc/pure-ftpd/passwd"
+      - "/var/data/ftp/logs:/var/log/pure-ftpd"
+    environment:
+      PUBLICHOST: "0.0.0.0"
+      FTP_USER_NAME: "ftp_user"
+      FTP_USER_PASS: "password"
+      FTP_USER_HOME: "/home/ftpusers"
+      SERVICE_NAME: ftp
+      ADDED_FLAGS: "-O w3c:/var/log/pure-ftpd/transfer.log"
+      ADDED_FLAGS: "-d -d"

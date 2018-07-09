@@ -1,0 +1,12 @@
+---
+- name: Copy docker-compose
+  template: src=docker-compose.yml.j2 dest=/etc/compose/ftp-server.yml
+  register: compose
+
+- name: Run docker container
+  command: docker-compose --file=/etc/compose/ftp-server.yml up -d --force-recreate
+  when: compose.changed
+
+- name: Chown /home/ftpusers to ftpuser
+  command: docker exec compose_ftpd_server_1 chown -R ftpuser /home/ftpusers
+  when: compose.changed
