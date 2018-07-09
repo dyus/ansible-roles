@@ -12,7 +12,7 @@ services:
       - "/var/data/ftp/passwd:/etc/pure-ftpd/passwd"
       - "/var/data/ftp/logs:/var/log/pure-ftpd"
     environment:
-      PUBLICHOST: "0.0.0.0"
+      PUBLICHOST: "{{ ansible_default_ipv4.address }}"
       FTP_USER_NAME: "ftp_user"
       FTP_USER_PASS: "password"
       FTP_USER_HOME: "/home/ftpusers"
