@@ -9,3 +9,4 @@
 
 - name: Chown /home/ftpusers to ftpuser
   command: docker exec compose_ftpd_server_1 chown -R ftpuser /home/ftpusers
+  when: compose.changed
