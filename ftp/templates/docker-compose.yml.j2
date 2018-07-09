@@ -1,4 +1,4 @@
-version: '2'
+version: '3'
 services:
   ftpd_server:
     image: stilliard/pure-ftpd:hardened
@@ -17,5 +17,4 @@ services:
       FTP_USER_PASS: "password"
       FTP_USER_HOME: "/home/ftpusers"
       SERVICE_NAME: ftp
-      ADDED_FLAGS: "-O w3c:/var/log/pure-ftpd/transfer.log"
-      ADDED_FLAGS: "-d -d"
+      # ADDED_FLAGS: "-d -d -O w3c:/var/log/pure-ftpd/transfer.log"
